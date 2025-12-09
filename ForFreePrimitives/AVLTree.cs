@@ -215,15 +215,39 @@ namespace ForFreePrimitives
 				return count;
 			}
 
-			public int GetLowerCount(T item)
+			public int GetLesserCount(T item)
 			{
 				var result = value.CompareTo(item);
 				if (result >= 0)
-					return left?.GetLowerCount(item) ?? 0;
+					return left?.GetLesserCount(item) ?? 0;
 				var count = 1;
 				count += left?.count ?? 0;
-				count += right?.GetLowerCount(item) ?? 0;
+				count += right?.GetLesserCount(item) ?? 0;
 				return count;
+			}
+
+			public bool GetGreater(T item, out T result)
+			{
+				result = default;
+				var cmp = value.CompareTo(item);
+				if (cmp <= 0)
+					return right?.GetGreater(item, out result) ?? false;
+				if (left?.GetGreater(item, out result) ?? false)
+					return true;
+				result = value;
+				return true;
+			}
+
+			public bool GetLesser(T item, out T result)
+			{
+				result = default;
+				var cmp = value.CompareTo(item);
+				if (cmp >= 0)
+					return left?.GetLesser(item, out result) ?? false;
+				if (right?.GetLesser(item, out result) ?? false)
+					return true;
+				result = value;
+				return true;
 			}
 		}
 
@@ -266,9 +290,21 @@ namespace ForFreePrimitives
 			return root?.GetGreaterCount(item) ?? 0;
 		}
 
-		public int GetLowerCount(T item)
+		public int GetLesserCount(T item)
 		{
-			return root?.GetLowerCount(item) ?? 0;
+			return root?.GetLesserCount(item) ?? 0;
+		}
+
+		public bool GetGreater(T item, out T result)
+		{
+			result = default;
+			return root?.GetGreater(item, out result) ?? false;
+		}
+
+		public bool GetLesser(T item, out T result)
+		{
+			result = default;
+			return root?.GetLesser(item, out result) ?? false;
 		}
 	}
 }
