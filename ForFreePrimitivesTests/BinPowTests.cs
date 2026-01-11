@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
 using ForFreePrimitives;
 
 namespace ForFreePrimitivesTests
@@ -26,6 +27,30 @@ namespace ForFreePrimitivesTests
 			new int[] { 11, 12, 13 },
 		};
 
+		private readonly (int[][], int, int, int[][])[] matrixTestcases = new[]
+		{
+			(new [] {
+				new [] { 0, 1 },
+				new [] { 1, 0 },
+			},
+			1000000000,
+			1000000007,
+			new [] {
+				new [] { 1, 0 },
+				new [] { 0, 1 },
+			}),
+			(new [] {
+				new [] { 0, 999999999 },
+				new [] { 999999999, 0 },
+			},
+			2,
+			1000000007,
+			new [] {
+				new [] { 64, 0 },
+				new [] { 0, 64 },
+			}),
+		};
+
 		private void ProcessTestCases()
 		{
 			ProcessDefinedTestCases();
@@ -36,6 +61,8 @@ namespace ForFreePrimitivesTests
 		{
 			foreach (var testcase in testcases)
 				Validate(testcase);
+			foreach (var (val, exp, mod, result) in matrixTestcases)
+				Validate(val, exp, mod, result);
 		}
 
 		private void ProcessRandomTestCases()
@@ -70,6 +97,15 @@ namespace ForFreePrimitivesTests
 			if (BigInteger.Pow(val, exp) <= int.MaxValue)
 				Assert.IsTrue(BinPow.Calc((int)val, exp) == BigInteger.Pow(val, exp), $"BinPow.Calc({val}, {exp})");
 			Assert.IsTrue(BinPow.Calc((int)val, exp, (int)mod) == BigInteger.ModPow(val, exp, mod), $"BinPow.Calc({val}, {exp}, {mod})");
+		}
+
+		private void Validate(int[][] val, int exp, int mod, int[][] result)
+		{
+			var test = BinPow.Calc(val, exp, mod);
+			Assert.IsTrue(test.Length == result.Length, "Incorrect result matrix size");
+			if (test.Length == result.Length)
+				for (var i = 0; i < test.Length; i += 1)
+					Assert.IsTrue(Enumerable.SequenceEqual(test[i], result[i]), $"Incorrect matrix row {i}");
 		}
 	}
 }
