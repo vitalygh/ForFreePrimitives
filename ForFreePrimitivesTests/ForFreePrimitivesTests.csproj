@@ -116,6 +116,7 @@
   <ItemGroup>
     <Compile Include="AVLTreeTests.cs" />
     <Compile Include="BinPowTests.cs" />
+    <Compile Include="BITTest.cs" />
     <Compile Include="CombinatoricsTests.cs" />
     <Compile Include="NumbersTests.cs" />
     <Compile Include="PrimeNumbersTests.cs" />

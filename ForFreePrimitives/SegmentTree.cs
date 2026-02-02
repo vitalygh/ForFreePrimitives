@@ -2,6 +2,140 @@
 
 namespace ForFreePrimitives
 {
+	public class MaxSegmentTree<T> where T : IComparable
+	{
+		private T[] nums = null;
+		private int[] nodes = null;
+
+		public MaxSegmentTree(T[] nums)
+		{
+			this.nums = nums;
+			nodes = new int[nums.Length * 4];
+			for (var i = 0; i < nodes.Length; i += 1)
+				nodes[i] = -1;
+		}
+
+		public void Update(int index, T value)
+		{
+			nums[index] = value;
+			Update(1, index, 0, nums.Length - 1);
+		}
+
+		private void Update(int nodeIndex, int valueIndex, int left, int right)
+		{
+			nodes[nodeIndex] = -1;
+			if (left == right)
+				return;
+			var mid = left + (right - left) / 2;
+			if (valueIndex <= mid)
+				Update(2 * nodeIndex, valueIndex, left, mid);
+			else
+				Update(2 * nodeIndex + 1, valueIndex, mid + 1, right);
+		}
+
+		private int GetMax(int index, int left, int right)
+		{
+			var max = nodes[index];
+			if (max >= 0)
+				return max;
+			if (left == right)
+			{
+				nodes[index] = left;
+				return nodes[index];
+			}
+			var mid = left + (right - left) / 2;
+			var leftMax = GetMax(2 * index, left, mid);
+			var rightMax = GetMax(2 * index + 1, mid + 1, right);
+			if (nums[leftMax].CompareTo(nums[rightMax]) < 0)
+				nodes[index] = rightMax;
+			else
+				nodes[index] = leftMax;
+			return nodes[index];
+		}
+
+		public int GetFirstGreater(T value)
+		{
+			return GetFirstGreater(1, value, 0, nums.Length - 1);
+		}
+
+		private int GetFirstGreater(int index, T value, int left, int right)
+		{
+			var max = GetMax(index, left, right);
+			if (nums[max].CompareTo(value) <= 0)
+				return -1;
+			if (left == right)
+				return max;
+			var mid = left + (right - left) / 2;
+			var leftGreater = GetFirstGreater(index * 2, value, left, mid);
+			if (leftGreater >= 0)
+				return leftGreater;
+			return GetFirstGreater(index * 2 + 1, value, mid + 1, right);
+		}
+	}
+
+	public class LengthSegmentTree
+	{
+		private class Node
+		{
+			public int left = 0;
+			public int right = 0;
+			public int count = 0;
+			public int length = 0;
+		}
+
+		private Node[] nodes = null;
+		private int[] nums = null;
+
+		public LengthSegmentTree(int[] nums)
+		{
+			this.nums = nums;
+			nodes = new Node[(nums.Length - 1) * 4];
+			for (var i = 0; i < nodes.Length; i += 1)
+				nodes[i] = new Node();
+			Build(1, 0, nums.Length - 2);
+		}
+
+		private void Build(int node, int left, int right)
+		{
+			nodes[node].left = left;
+			nodes[node].right = right;
+			if (left != right)
+			{
+				var mid = left + (right - left) / 2;
+				Build(node * 2, left, mid);
+				Build(node * 2 + 1, mid + 1, right);
+			}
+		}
+
+		public void Update(int left, int right, int count)
+		{
+			Update(1, left, right, count);
+		}
+
+		private void Update(int node, int left, int right, int count)
+		{
+			var n = nodes[node];
+			if ((n.left >= left) && (n.right <= right))
+				n.count += count;
+			else
+			{
+				var mid = n.left + (n.right - n.left) / 2;
+				if (left <= mid)
+					Update(node * 2, left, right, count);
+				if (right > mid)
+					Update(node * 2 + 1, left, right, count);
+			}
+			if (n.count > 0)
+				n.length = nums[n.right + 1] - nums[n.left];
+			else if (n.left == n.right)
+				n.length = 0;
+			else
+				n.length = nodes[node * 2].length + nodes[node * 2 + 1].length;
+		}
+
+		public int Length { get => nodes[1].length; }
+	}
+
 	public class SegmentTree
 	{
 		private class Node
