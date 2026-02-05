@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using ForFreePrimitives;
 
@@ -12,7 +13,10 @@ namespace ForFreePrimitivesTests
 		public void Tests()
 		{
 			ProcessDefinedTestCases();
+			ProcessRandomTestCases();
 		}
+
+		private static Random random = new Random();
 
 		private readonly (int[] target, int[] available, int missingCount)[] maxSegmentTreeTestcases = new[]
 		{
@@ -80,6 +84,50 @@ namespace ForFreePrimitivesTests
 				ValidateMax(target, available, missingCount);
 			foreach (var (nums, segments) in lengthSegmentTreeTestcases)
 				ValidateLength(nums, segments);
+		}
+
+		private void ProcessRandomTestCases()
+		{
+			ValidateMinMaxInBounds();
+		}
+
+		private string Dump(int[] nums, int left, int right)
+		{
+			var sb = new StringBuilder();
+			for (var i = left; i <= Math.Min(right, nums.Length - 1); i += 1)
+			{
+				if (sb.Length > 0)
+					sb.Append(",");
+				sb.Append(nums[i]);
+			}
+			return sb.ToString();
+		}
+
+		private void ValidateMinMaxInBounds()
+		{
+			var length = 20;
+			var minValue = int.MinValue;
+			var maxValue = int.MaxValue;
+			var testData = new int[length];
+			for (var i = 0; i < testData.Length; i += 1)
+				testData[i] = random.Next(minValue, maxValue);
+			var maxTree = new MaxSegmentTree<int>(testData);
+			var minTree = new MinSegmentTree<int>(testData);
+			for (var i = 0; i < testData.Length; i += 1)
+				for (var j = i; j < testData.Length; j += 1)
+				{
+					var max = testData[i];
+					var min = testData[i];
+					for (var k = i + 1; k <= j; k += 1)
+					{
+						max = Math.Max(max, testData[k]);
+						min = Math.Min(min, testData[k]);
+					}
+					var treeMax = maxTree.GetValueInBounds(i, j);
+					var treeMin = minTree.GetValueInBounds(i, j);
+					Assert.IsTrue(max == treeMax, $"[{Dump(testData, 0, testData.Length - 1)}] [{i},{j}] max {max} != {treeMax}");
+					Assert.IsTrue(min == treeMin, $"[{Dump(testData, 0, testData.Length - 1)}] [{i},{j}] min {min} != {treeMin}");
+				}
 		}
 
 		private void ValidateMax(int[] target, int[] available, int missingCount)

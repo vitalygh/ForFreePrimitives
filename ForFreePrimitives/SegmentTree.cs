@@ -2,18 +2,53 @@
 
 namespace ForFreePrimitives
 {
-	public class MaxSegmentTree<T> where T : IComparable
+	public class MinSegmentTree<T> : SelectSegmentTree<T> where T : IComparable
 	{
-		private T[] nums = null;
+		public MinSegmentTree(T[] nums) : base(nums) { }
+
+		protected override int SelectIndex(int a, int b) => nums[a].CompareTo(nums[b]) < 0 ? a : b;
+	}
+
+	public class MaxSegmentTree<T> : SelectSegmentTree<T> where T : IComparable
+	{
+		public MaxSegmentTree(T[] nums) : base(nums) { }
+
+		protected override int SelectIndex(int a, int b) => nums[a].CompareTo(nums[b]) > 0 ? a : b;
+
+		public int GetFirstGreater(T value)
+		{
+			return GetFirstGreater(1, value, 0, nums.Length - 1);
+		}
+
+		private int GetFirstGreater(int index, T value, int left, int right)
+		{
+			var max = GetSelectedIndex(index, left, right);
+			if (nums[max].CompareTo(value) <= 0)
+				return -1;
+			if (left == right)
+				return max;
+			var mid = left + (right - left) / 2;
+			var leftGreater = GetFirstGreater(index * 2, value, left, mid);
+			if (leftGreater >= 0)
+				return leftGreater;
+			return GetFirstGreater(index * 2 + 1, value, mid + 1, right);
+		}
+	}
+
+	public abstract class SelectSegmentTree<T> where T : IComparable
+	{
+		protected T[] nums = null;
 		private int[] nodes = null;
 
-		public MaxSegmentTree(T[] nums)
+		public SelectSegmentTree(T[] nums)
 		{
 			this.nums = nums;
 			nodes = new int[nums.Length * 4];
 			for (var i = 0; i < nodes.Length; i += 1)
 				nodes[i] = -1;
 		}
+
+		protected abstract int SelectIndex(int a, int b);
 
 		public void Update(int index, T value)
 		{
@@ -33,7 +68,7 @@ namespace ForFreePrimitives
 				Update(2 * nodeIndex + 1, valueIndex, mid + 1, right);
 		}
 
-		private int GetMax(int index, int left, int right)
+		protected int GetSelectedIndex(int index, int left, int right)
 		{
 			var max = nodes[index];
 			if (max >= 0)
@@ -44,32 +79,35 @@ namespace ForFreePrimitives
 				return nodes[index];
 			}
 			var mid = left + (right - left) / 2;
-			var leftMax = GetMax(2 * index, left, mid);
-			var rightMax = GetMax(2 * index + 1, mid + 1, right);
-			if (nums[leftMax].CompareTo(nums[rightMax]) < 0)
-				nodes[index] = rightMax;
-			else
-				nodes[index] = leftMax;
+			var leftMax = GetSelectedIndex(2 * index, left, mid);
+			var rightMax = GetSelectedIndex(2 * index + 1, mid + 1, right);
+			nodes[index] = SelectIndex(leftMax, rightMax);
 			return nodes[index];
 		}
 
-		public int GetFirstGreater(T value)
+		public T GetValueInBounds(int left, int right)
 		{
-			return GetFirstGreater(1, value, 0, nums.Length - 1);
+			var index = GetIndexInBounds(left, right);
+			return nums[index];
 		}
 
-		private int GetFirstGreater(int index, T value, int left, int right)
+		public int GetIndexInBounds(int left, int right)
 		{
-			var max = GetMax(index, left, right);
-			if (nums[max].CompareTo(value) <= 0)
-				return -1;
-			if (left == right)
-				return max;
+			return GetIndexInBounds(1, 0, nums.Length - 1, Math.Max(0, left), Math.Min(nums.Length - 1, right));
+		}
+
+		private int GetIndexInBounds(int index, int left, int right, int leftBound, int rightBound)
+		{
+			if ((left == leftBound) && (right == rightBound))
+				return GetSelectedIndex(index, left, right);
 			var mid = left + (right - left) / 2;
-			var leftGreater = GetFirstGreater(index * 2, value, left, mid);
-			if (leftGreater >= 0)
-				return leftGreater;
-			return GetFirstGreater(index * 2 + 1, value, mid + 1, right);
+			if (rightBound <= mid)
+				return GetIndexInBounds(index * 2, left, mid, leftBound, rightBound);
+			if (leftBound > mid)
+				return GetIndexInBounds(index * 2 + 1, mid + 1, right, leftBound, rightBound);
+			var leftMax = GetIndexInBounds(index * 2, left, mid, leftBound, mid);
+			var rightMax = GetIndexInBounds(index * 2 + 1, mid + 1, right, mid + 1, rightBound);
+			return SelectIndex(leftMax, rightMax);
 		}
 	}
 
