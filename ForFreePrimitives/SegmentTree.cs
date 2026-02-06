@@ -17,10 +17,17 @@ namespace ForFreePrimitives
 
 		public int GetFirstGreater(T value)
 		{
-			return GetFirstGreater(1, value, 0, nums.Length - 1);
+			return GetFirstGreater(1, value, 0, nums.Length - 1, 0, nums.Length - 1);
 		}
 
-		private int GetFirstGreater(int index, T value, int left, int right)
+		public int GetFirstGreater(T value, int leftBound, int rightBound)
+		{
+			if (leftBound > rightBound)
+				return -1;
+			return GetFirstGreater(1, value, 0, nums.Length - 1, Math.Max(0, leftBound), Math.Min(nums.Length - 1, rightBound));
+		}
+
+		private int GetFirstGreater(int index, T value, int left, int right, int leftBound, int rightBound)
 		{
 			var max = GetSelectedIndex(index, left, right);
 			if (nums[max].CompareTo(value) <= 0)
@@ -28,10 +35,14 @@ namespace ForFreePrimitives
 			if (left == right)
 				return max;
 			var mid = left + (right - left) / 2;
-			var leftGreater = GetFirstGreater(index * 2, value, left, mid);
+			if (rightBound <= mid)
+				return GetFirstGreater(2 * index, value, left, mid, leftBound, rightBound);
+			if (leftBound > mid)
+				return GetFirstGreater(2 * index + 1, value, mid + 1, right, leftBound, rightBound);
+			var leftGreater = GetFirstGreater(index * 2, value, left, mid, leftBound, mid);
 			if (leftGreater >= 0)
 				return leftGreater;
-			return GetFirstGreater(index * 2 + 1, value, mid + 1, right);
+			return GetFirstGreater(index * 2 + 1, value, mid + 1, right, mid + 1, rightBound);
 		}
 	}
 

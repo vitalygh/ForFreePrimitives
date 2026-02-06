@@ -118,15 +118,21 @@ namespace ForFreePrimitivesTests
 				{
 					var max = testData[i];
 					var min = testData[i];
+					var firstGreaterTarget = random.Next(minValue, maxValue);
+					var firstGreater = testData[i] > firstGreaterTarget ? i : -1;
 					for (var k = i + 1; k <= j; k += 1)
 					{
 						max = Math.Max(max, testData[k]);
 						min = Math.Min(min, testData[k]);
+						if ((firstGreater < 0) && (testData[k] > firstGreaterTarget))
+							firstGreater = k;
 					}
 					var treeMax = maxTree.GetValueInBounds(i, j);
 					var treeMin = minTree.GetValueInBounds(i, j);
+					var treeFirstGreater = maxTree.GetFirstGreater(firstGreaterTarget, i, j);
 					Assert.IsTrue(max == treeMax, $"[{Dump(testData, 0, testData.Length - 1)}] [{i},{j}] max {max} != {treeMax}");
 					Assert.IsTrue(min == treeMin, $"[{Dump(testData, 0, testData.Length - 1)}] [{i},{j}] min {min} != {treeMin}");
+					Assert.IsTrue(firstGreater == treeFirstGreater, $"[{Dump(testData, 0, testData.Length - 1)}] [{i},{j}] first greater for {firstGreaterTarget} is {firstGreater} != {treeFirstGreater}");
 				}
 		}
 
