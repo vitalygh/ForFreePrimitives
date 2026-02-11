@@ -44,6 +44,37 @@ namespace ForFreePrimitives
 				return leftGreater;
 			return GetFirstGreater(index * 2 + 1, value, mid + 1, right, mid + 1, rightBound);
 		}
+
+		public int GetLastGreater(T value)
+		{
+			return GetLastGreater(1, value, 0, nums.Length - 1, 0, nums.Length - 1);
+		}
+
+		public int GetLastGreater(T value, int leftBound, int rightBound)
+		{
+			if (leftBound > rightBound)
+				return -1;
+			return GetLastGreater(1, value, 0, nums.Length - 1, Math.Max(0, leftBound), Math.Min(nums.Length - 1, rightBound));
+		}
+
+		private int GetLastGreater(int index, T value, int left, int right, int leftBound, int rightBound)
+		{
+			var max = GetSelectedIndex(index, left, right);
+			if (nums[max].CompareTo(value) <= 0)
+				return -1;
+			if (left == right)
+				return max;
+			var mid = left + (right - left) / 2;
+			if (rightBound <= mid)
+				return GetLastGreater(2 * index, value, left, mid, leftBound, rightBound);
+			if (leftBound > mid)
+				return GetLastGreater(2 * index + 1, value, mid + 1, right, leftBound, rightBound);
+			var rightGreater = GetLastGreater(index * 2 + 1, value, mid + 1, right, mid + 1, rightBound);
+			if (rightGreater >= 0)
+				return rightGreater;
+			return GetLastGreater(index * 2, value, left, mid, leftBound, mid);
+		}
+
 	}
 
 	public abstract class SelectSegmentTree<T> where T : IComparable

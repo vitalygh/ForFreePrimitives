@@ -189,21 +189,29 @@ namespace ForFreePrimitivesTests
 				{
 					var max = testData[i];
 					var min = testData[i];
-					var firstGreaterTarget = random.Next(minValue, maxValue);
-					var firstGreater = testData[i] > firstGreaterTarget ? i : -1;
+					var greaterTarget = random.Next(minValue, maxValue);
+					var firstGreater = testData[i] > greaterTarget ? i : -1;
 					for (var k = i + 1; k <= j; k += 1)
 					{
 						max = Math.Max(max, testData[k]);
 						min = Math.Min(min, testData[k]);
-						if ((firstGreater < 0) && (testData[k] > firstGreaterTarget))
+						if ((firstGreater < 0) && (testData[k] > greaterTarget))
 							firstGreater = k;
+					}
+					var lastGreater = -1;
+					for (var k = j; k >= i; k -= 1)
+					{
+						if ((lastGreater < 0) && (testData[k] > greaterTarget))
+							lastGreater = k;
 					}
 					var treeMax = maxTree.GetValueInBounds(i, j);
 					var treeMin = minTree.GetValueInBounds(i, j);
-					var treeFirstGreater = maxTree.GetFirstGreater(firstGreaterTarget, i, j);
+					var treeFirstGreater = maxTree.GetFirstGreater(greaterTarget, i, j);
+					var treeLastGreater = maxTree.GetLastGreater(greaterTarget, i, j);
 					Assert.IsTrue(max == treeMax, $"[{Dump(testData)}] [{i},{j}] max {max} != {treeMax}");
 					Assert.IsTrue(min == treeMin, $"[{Dump(testData)}] [{i},{j}] min {min} != {treeMin}");
-					Assert.IsTrue(firstGreater == treeFirstGreater, $"[{Dump(testData)}] [{i},{j}] first greater for {firstGreaterTarget} is {firstGreater} != {treeFirstGreater}");
+					Assert.IsTrue(firstGreater == treeFirstGreater, $"[{Dump(testData)}] [{i},{j}] first greater for {greaterTarget} is {firstGreater} != {treeFirstGreater}");
+					Assert.IsTrue(lastGreater == treeLastGreater, $"[{Dump(testData)}] [{i},{j}] last greater for {greaterTarget} is {lastGreater} != {treeLastGreater}");
 				}
 		}
 
