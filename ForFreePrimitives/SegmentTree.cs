@@ -122,6 +122,156 @@ namespace ForFreePrimitives
 		}
 	}
 
+	public class MinMaxLazySegmentTree
+	{
+		private class Node
+		{
+			public int min = 0;
+			public int max = 0;
+			public int update = 0;
+		}
+
+		private Node[] nodes = null;
+
+		public int Size => nodes.Length / 4;
+
+		public MinMaxLazySegmentTree(int size)
+		{
+			nodes = new Node[size * 4];
+			for (var i = 0; i < nodes.Length; i += 1)
+				nodes[i] = new Node();
+		}
+
+		public void Update(int leftBound, int rightBound, int value)
+		{
+			Update(1, 0, Size - 1, leftBound, rightBound, value);
+		}
+
+		public int GetMin(int leftBound, int rightBound)
+		{
+			return GetMin(1, 0, Size - 1, leftBound, rightBound);
+		}
+
+		public int GetMax(int leftBound, int rightBound)
+		{
+			return GetMax(1, 0, Size - 1, leftBound, rightBound);
+		}
+
+		public int GetLastZeroIndex(int leftBound, int rightBound)
+		{
+			return GetLastZeroIndex(1, 0, Size - 1, leftBound, rightBound);
+		}
+
+		private int GetLastZeroIndex(int nodeIndex, int left, int right, int leftBound, int rightBound)
+		{
+			var mid = left + (right - left) / 2;
+			var node = nodes[nodeIndex];
+			if (left < right)
+			{
+				PushUpdate(nodeIndex, left, right);
+				if (rightBound <= mid)
+					return GetLastZeroIndex(2 * nodeIndex, left, mid, leftBound, rightBound);
+				if (leftBound > mid)
+					return GetLastZeroIndex(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+			}
+			if (left == right)
+				return node.update == 0 ? left : -1;
+			var min = GetMin(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+			var max = GetMax(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+			if ((min == 0) && (max == 0))
+				return Math.Min(right, rightBound);
+			if ((min <= 0) && (max >= 0))
+			{
+				var rightIndex = GetLastZeroIndex(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+				if (rightIndex != -1)
+					return rightIndex;
+			}
+			min = GetMin(2 * nodeIndex, left, mid, leftBound, rightBound);
+			max = GetMax(2 * nodeIndex, left, mid, leftBound, rightBound);
+			if ((min == 0) && (max == 0))
+				return Math.Min(mid, rightBound);
+			if ((min <= 0) && (max >= 0))
+				return GetLastZeroIndex(2 * nodeIndex, left, mid, leftBound, rightBound);
+			return -1;
+		}
+
+		private void PushUpdate(int nodeIndex, int left, int right)
+		{
+			var node = nodes[nodeIndex];
+			if (node.update == 0)
+				return;
+			var mid = left + (right - left) / 2;
+			Update(2 * nodeIndex, left, mid, left, mid, node.update);
+			Update(2 * nodeIndex + 1, mid + 1, right, mid + 1, right, node.update);
+			node.update = 0;
+			var leftMin = GetMin(2 * nodeIndex, left, mid, left, mid);
+			var rightMin = GetMin(2 * nodeIndex + 1, mid + 1, right, mid + 1, right);
+			node.min = Math.Min(leftMin, rightMin);
+			var leftMax = GetMax(2 * nodeIndex, left, mid, left, mid);
+			var rightMax = GetMax(2 * nodeIndex + 1, mid + 1, right, mid + 1, right);
+			node.max = Math.Max(leftMax, rightMax);
+		}
+
+		private int GetMin(int nodeIndex, int left, int right, int leftBound, int rightBound)
+		{
+			var node = nodes[nodeIndex];
+			if ((leftBound <= left) && (right <= rightBound))
+				return node.min + node.update;
+			PushUpdate(nodeIndex, left, right);
+			var mid = left + (right - left) / 2;
+			if (rightBound <= mid)
+				return GetMin(2 * nodeIndex, left, mid, leftBound, rightBound);
+			if (leftBound > mid)
+				return GetMin(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+			var leftVal = GetMin(2 * nodeIndex, left, mid, leftBound, rightBound);
+			var rightVal = GetMin(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+			return Math.Min(leftVal, rightVal);
+		}
+
+		private int GetMax(int nodeIndex, int left, int right, int leftBound, int rightBound)
+		{
+			var node = nodes[nodeIndex];
+			if ((leftBound <= left) && (right <= rightBound))
+				return node.max + node.update;
+			PushUpdate(nodeIndex, left, right);
+			var mid = left + (right - left) / 2;			
+			if (rightBound <= mid)
+				return GetMax(2 * nodeIndex, left, mid, leftBound, rightBound);
+			if (leftBound > mid)
+				return GetMax(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+			var leftVal = GetMax(2 * nodeIndex, left, mid, leftBound, rightBound);
+			var rightVal = GetMax(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+			return Math.Max(leftVal, rightVal);
+		}
+
+		private void Update(int nodeIndex, int left, int right, int leftBound, int rightBound, int value)
+		{
+			var node = nodes[nodeIndex];
+			if ((left >= leftBound) && (right <= rightBound))
+			{
+				node.update += value;
+				return;
+			}
+			var mid = left + (right - left) / 2;
+			if (node.update != 0)
+			{
+				Update(2 * nodeIndex, left, mid, left, mid, node.update);
+				Update(2 * nodeIndex + 1, mid + 1, right, mid + 1, right, node.update);
+				node.update = 0;
+			}
+			if (leftBound <= mid)
+				Update(2 * nodeIndex, left, mid, leftBound, rightBound, value);
+			if (rightBound > mid)
+				Update(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound, value);
+			var	leftMin = GetMin(2 * nodeIndex, left, mid, left, mid);
+			var rightMin = GetMin(2 * nodeIndex + 1, mid + 1, right, mid + 1, right);
+			node.min = Math.Min(leftMin, rightMin);
+			var	leftMax = GetMax(2 * nodeIndex, left, mid, left, mid);
+			var rightMax = GetMax(2 * nodeIndex + 1, mid + 1, right, mid + 1, right);
+			node.max = Math.Max(leftMax, rightMax);
+		}
+	}
+
 	public class LengthSegmentTree
 	{
 		private class Node

@@ -88,7 +88,17 @@ namespace ForFreePrimitivesTests
 
 		private void ProcessRandomTestCases()
 		{
-			ValidateMinMaxInBounds();
+			var rounds = 5;
+			for (var i = 0; i < rounds; i += 1)
+			{
+				ValidateMinMaxInBounds();
+				ValidateMinMaxLazy();
+			}
+		}
+
+		private string Dump(int[] nums)
+		{
+			return Dump(nums, 0, nums.Length - 1);
 		}
 
 		private string Dump(int[] nums, int left, int right)
@@ -102,6 +112,67 @@ namespace ForFreePrimitivesTests
 			}
 			return sb.ToString();
 		}
+
+		private void ValidateMinMaxLazy()
+		{
+			var length = 20;
+			var minMaxTest = new int[length];
+			var minMaxTestTree = new MinMaxLazySegmentTree(minMaxTest.Length);
+			var minVal = -1000;
+			var maxVal = 1000;
+			var updatesCount = 10;
+			for (var i = 0; i < updatesCount; i += 1)
+			{
+				var start = random.Next(0, minMaxTest.Length);
+				var end = random.Next(start, minMaxTest.Length);
+				var u = random.Next(minVal, maxVal);
+				for (var j = start; j <= end; j += 1)
+					minMaxTest[j] += u;
+				minMaxTestTree.Update(start, end, u);
+			}
+			for (var i = 0; i < minMaxTest.Length; i += 1)
+				for (var j = i; j < minMaxTest.Length; j += 1)
+				{
+					var min = minMaxTest[i];
+					var max = minMaxTest[i];
+					for (var k = i + 1; k <= j; k += 1)
+					{
+						min = Math.Min(min, minMaxTest[k]);
+						max = Math.Max(max, minMaxTest[k]);
+					}
+					var treeMin = minMaxTestTree.GetMin(i, j);
+					var treeMax = minMaxTestTree.GetMax(i, j);
+					Assert.IsTrue(min == treeMin, $"[{Dump(minMaxTest)}] [{i}..{j}] min {min} != {treeMin}");
+					Assert.IsTrue(max == treeMax, $"[{Dump(minMaxTest)}] [{i}..{j}] max {max} != {treeMax}");
+				}
+
+			var zeroTest = new int[length];
+			var prev = 0;
+			for (var i = 0; i < zeroTest.Length; i += 1)
+			{
+				zeroTest[i] = prev + random.Next(-1, 2);
+				prev = zeroTest[i];
+			}
+			var zeroTestTree = new MinMaxLazySegmentTree(zeroTest.Length);
+			zeroTestTree.Update(0, zeroTest.Length - 1, zeroTest[0]);
+			for (var i = 1; i < zeroTest.Length; i += 1)
+			{
+				var delta = zeroTest[i] - zeroTest[i - 1];
+				if (delta != 0)
+					zeroTestTree.Update(i, zeroTest.Length - 1, delta);
+			}
+			for (var i = 0; i < zeroTest.Length; i += 1)
+			{
+				var lastZero = -1;
+				for (var j = i; j < zeroTest.Length; j += 1)
+				{
+					if (zeroTest[j] == 0)
+						lastZero = j;
+					var treeLastZero = zeroTestTree.GetLastZeroIndex(i, j);
+					Assert.IsTrue(lastZero == treeLastZero, $"[{Dump(zeroTest)}] [{i}..{j}] last zero index {lastZero} != {treeLastZero}");
+				}
+			}
+		}	
 
 		private void ValidateMinMaxInBounds()
 		{
@@ -130,9 +201,9 @@ namespace ForFreePrimitivesTests
 					var treeMax = maxTree.GetValueInBounds(i, j);
 					var treeMin = minTree.GetValueInBounds(i, j);
 					var treeFirstGreater = maxTree.GetFirstGreater(firstGreaterTarget, i, j);
-					Assert.IsTrue(max == treeMax, $"[{Dump(testData, 0, testData.Length - 1)}] [{i},{j}] max {max} != {treeMax}");
-					Assert.IsTrue(min == treeMin, $"[{Dump(testData, 0, testData.Length - 1)}] [{i},{j}] min {min} != {treeMin}");
-					Assert.IsTrue(firstGreater == treeFirstGreater, $"[{Dump(testData, 0, testData.Length - 1)}] [{i},{j}] first greater for {firstGreaterTarget} is {firstGreater} != {treeFirstGreater}");
+					Assert.IsTrue(max == treeMax, $"[{Dump(testData)}] [{i},{j}] max {max} != {treeMax}");
+					Assert.IsTrue(min == treeMin, $"[{Dump(testData)}] [{i},{j}] min {min} != {treeMin}");
+					Assert.IsTrue(firstGreater == treeFirstGreater, $"[{Dump(testData)}] [{i},{j}] first greater for {firstGreaterTarget} is {firstGreater} != {treeFirstGreater}");
 				}
 		}
 
