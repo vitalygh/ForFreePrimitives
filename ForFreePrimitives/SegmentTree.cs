@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ForFreePrimitives
 {
@@ -300,6 +301,97 @@ namespace ForFreePrimitives
 			var	leftMax = GetMax(2 * nodeIndex, left, mid, left, mid);
 			var rightMax = GetMax(2 * nodeIndex + 1, mid + 1, right, mid + 1, right);
 			node.max = Math.Max(leftMax, rightMax);
+		}
+	}
+
+	public class MajoritySegmentTree
+	{
+		private (int value, int count)[] nodes = null;
+		private Dictionary<int, List<int>> indexes = new Dictionary<int, List<int>>();
+
+		public int Size => nodes.Length / 4;
+
+		public MajoritySegmentTree(int[] nums)
+		{
+			nodes = new (int, int)[nums.Length * 4];
+			if (nums.Length > 0)
+			{
+				Build(1, 0, nums.Length - 1, nums);
+				for (var i = 0; i < nums.Length; i += 1)
+				{
+					var num = nums[i];
+					if (!indexes.TryGetValue(num, out var list))
+					{
+						list = new List<int>();
+						indexes.Add(num, list);
+					}
+					list.Add(i);
+				}
+			}
+		}
+
+		private (int value, int count) Merge((int value, int count) left, (int value, int count) right)
+		{
+			if (left.value == right.value)
+				return (left.value, left.count + right.count);
+			if (left.count > right.count)
+				return (left.value, left.count - right.count);
+			return (right.value, right.count - left.count);
+		}
+
+		private void Build(int nodeIndex, int left, int right, int[] nums)
+		{
+			if (left >= right)
+			{
+				nodes[nodeIndex] = (nums[left], 1);
+				return;
+			}
+			var mid = left + (right - left) / 2;
+			Build(2 * nodeIndex, left, mid, nums);
+			Build(2 * nodeIndex + 1, mid + 1, right, nums);
+			var ln = nodes[2 * nodeIndex];
+			var rn = nodes[2 * nodeIndex + 1];
+			nodes[nodeIndex] = Merge(ln, rn);
+		}
+
+		private int Greater(IList<int> nums, int target)
+		{
+			var start = 0;
+			var end = nums.Count - 1;
+			while (start <= end)
+			{
+				var mid = start + (end - start) / 2;
+				if (nums[mid] <= target)
+					start = mid + 1;
+				else
+					end = mid - 1;
+			}
+			return end + 1;
+		}
+
+		public (int value, int count) Query(int left, int right)
+		{
+			var value = Query(1, 0, Size - 1, left, right).value;
+			var idxs = indexes[value];
+			var count = Greater(idxs, right) - Greater(idxs, left - 1);
+			return (value, count);
+		}
+
+		private (int value, int count) Query(int nodeIndex, int left, int right, int leftBound, int rightBound)
+		{
+			if ((left >= leftBound) && (right <= rightBound))
+			{
+				var node = nodes[nodeIndex];
+				return (node.value, node.count);
+			}
+			var mid = left + (right - left) / 2;
+			if (rightBound <= mid)
+				return Query(2 * nodeIndex, left, mid, leftBound, rightBound);
+			if (leftBound > mid)
+				return Query(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound);
+			var ln = Query(2 * nodeIndex, left, mid, leftBound, rightBound);
+			var rn = Query(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound); ;
+			return Merge(ln, rn);
 		}
 	}
 

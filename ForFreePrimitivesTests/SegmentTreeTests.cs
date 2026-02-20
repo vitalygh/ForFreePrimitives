@@ -37,6 +37,12 @@ namespace ForFreePrimitivesTests
 			6),
 		};
 
+		private readonly int[][] majoritySegmentTreeTestcases = new int[][]
+		{
+			new int[] { 1, 1, 2, 2, 1, 2, 3, 3, 4, 3, 3, 3, 4  },
+			new int[] { 1, 2, 1, 2, 2, 2, 3, 3, 2, 2, 2, 1, 1  },
+		};
+
 		private readonly (int[] nums, int[][] segments)[] lengthSegmentTreeTestcases = new[]
 		{
 			(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new int[][]
@@ -84,6 +90,8 @@ namespace ForFreePrimitivesTests
 				ValidateMax(target, available, missingCount);
 			foreach (var (nums, segments) in lengthSegmentTreeTestcases)
 				ValidateLength(nums, segments);
+			foreach (var nums in majoritySegmentTreeTestcases)
+				ValidateMajority(nums);
 		}
 
 		private void ProcessRandomTestCases()
@@ -111,6 +119,34 @@ namespace ForFreePrimitivesTests
 				sb.Append(nums[i]);
 			}
 			return sb.ToString();
+		}
+
+		private void ValidateMajority(int[] nums)
+		{
+			var tree = new MajoritySegmentTree(nums);
+			var counter = new Dictionary<int, int>();
+			for (var i = 0; i < nums.Length; i += 1)
+				for (var j = i; j < nums.Length; j += 1)
+				{
+					counter.Clear();
+					var max = nums[i];
+					for (var k = i; k <= j; k += 1)
+					{
+						var num = nums[k];
+						if (counter.TryGetValue(num, out var count))
+							counter[num] = count + 1;
+						else
+							counter.Add(num, 1);
+						if ((num != max) && (counter[num] > counter[max]))
+							max = num;
+					}
+					var (v, c) = tree.Query(i, j);
+					var length = j - i + 1;
+					if (2 * counter[max] > length)
+						Assert.IsTrue((v == max) && (c == counter[max]), $"[{Dump(nums)}] [{i}..{j}] ({v}, {c}) != ({max}, {counter[max]})");
+					else
+						Assert.IsTrue(2 * c <= length, $"[{Dump(nums)}] [{i}..{j}] ({v}, {c}) 2 * {c} > {length}");
+				}
 		}
 
 		private void ValidateMinMaxLazy()
