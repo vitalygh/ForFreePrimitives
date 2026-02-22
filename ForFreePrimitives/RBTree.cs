@@ -208,8 +208,7 @@ namespace ForFreePrimitives
 		{
 			if (node != null)
 				node.parent = parent;
-			if (parent != null)
-				parent.right = node;
+			parent.right = node;
 		}
 
 		private void Replace(Node parent, Node from, Node to)
@@ -301,7 +300,11 @@ namespace ForFreePrimitives
 		private void BalanceAfterRemove(Node parent, bool left)
 		{
 			if (parent == null)
+			{
+				if (root != null)
+					root.black = true;
 				return;
+			}
 			var sibling = left ? parent.right : parent.left;
 			if (left)
 			{
@@ -473,6 +476,8 @@ namespace ForFreePrimitives
 
 		public bool IsValid()
 		{
+			if (!IsBlack(root))
+				return false;
 			if (!ValidateParent(root))
 				return false;
 			if (ValidateBlackHeight(root) < 0)
@@ -487,6 +492,8 @@ namespace ForFreePrimitives
 			if (node == null)
 				return true;
 			if (node.parent != parent)
+				return false;
+			if (IsRed(node) && IsRed(node.parent))
 				return false;
 			return ValidateParent(node.left, node) && ValidateParent(node.right, node);
 		}
