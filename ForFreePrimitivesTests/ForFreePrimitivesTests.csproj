@@ -117,9 +117,11 @@
     <Compile Include="AVLTreeTests.cs" />
     <Compile Include="BinPowTests.cs" />
     <Compile Include="BITTest.cs" />
+    <Compile Include="Tools.cs" />
     <Compile Include="CombinatoricsTests.cs" />
     <Compile Include="NumbersTests.cs" />
     <Compile Include="PrimeNumbersTests.cs" />
+    <Compile Include="RBTreeTests.cs" />
     <Compile Include="SegmentTreeTests.cs" />
     <Compile Include="UnionFindTests.cs" />
     <Compile Include="KMPTests.cs" />

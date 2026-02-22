@@ -61,6 +61,7 @@
     <Compile Include="Numbers.cs" />
     <Compile Include="KMP.cs" />
     <Compile Include="PrimeNumbers.cs" />
+    <Compile Include="RBTree.cs" />
     <Compile Include="SegmentTree.cs" />
     <Compile Include="UnionFind.cs" />
   </ItemGroup>
