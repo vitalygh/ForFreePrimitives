@@ -30,9 +30,16 @@ namespace ForFreePrimitives
 		}
 
 		private Node root = null;
+		private Node minItem = null;
+		private Node maxItem = null;
 
 		private static bool IsBlack(Node node) => node?.black ?? true;
 		private static bool IsRed(Node node) => !IsBlack(node);
+
+		public int Count => root?.subtreeSize ?? 0;
+
+		public T Min => minItem.value;
+		public T Max => maxItem.value;
 
 		public void Add(T value)
 		{
@@ -43,6 +50,8 @@ namespace ForFreePrimitives
 					value = value,
 					black = true
 				};
+				minItem = root;
+				maxItem = root;
 				return;
 			}
 			Add(root, value);
@@ -74,6 +83,8 @@ namespace ForFreePrimitives
 						black = false,
 						count = 1,
 					};
+					if (node == minItem)
+						minItem = node.left;
 					var parent = node;
 					while (parent != null)
 					{
@@ -96,6 +107,8 @@ namespace ForFreePrimitives
 					count = 1,
 					subtreeSize = 1,
 				};
+				if (node == maxItem)
+					maxItem = node.right;
 				var parent = node;
 				while (parent != null)
 				{
@@ -138,6 +151,10 @@ namespace ForFreePrimitives
 					current.subtreeSize -= 1;
 					current = current.parent;
 				}
+				if (node == minItem)
+					minItem = Next(node);
+				if (node == maxItem)
+					maxItem = Previous(node);
 				var wasLeft = true;
 				var child = node.left ?? node.right;
 				if (node.parent == null)
@@ -181,20 +198,35 @@ namespace ForFreePrimitives
 			if (node == null)
 				return null;
 			if (node.right != null)
-				node = node.right;
-			else
 			{
-				if (node.parent == null)
-					return null;
-				if (node.parent.right == null)
-					return node.parent;
-				if (node.parent.right == node)
-					return null;
-				node = node.parent.right;
+				var nextNode = node.right;
+				while (nextNode.left != null)
+					nextNode = nextNode.left;
+				return nextNode;
 			}
-			while (node.left != null)
-				node = node.left;
-			return node;
+			if (node.parent == null)
+				return null;
+			if (node.parent.right == node)
+				return null;
+			return node.parent;
+		}
+
+		private static Node Previous(Node node)
+		{
+			if (node == null)
+				return null;
+			if (node.left != null)
+			{
+				var nextNode = node.left;
+				while (nextNode.right != null)
+					nextNode = nextNode.right;
+				return nextNode;
+			}
+			if (node.parent == null)
+				return null;
+			if (node.parent.left == node)
+				return null;
+			return node.parent;
 		}
 
 		private static void SetLeft(Node parent, Node node)
@@ -376,37 +408,37 @@ namespace ForFreePrimitives
 			}
 		}
 
-		public bool GetGreater(T value, out T result)
+		public bool TryGetGreater(T value, out T result)
 		{
-			return GetGreater(root, value, out result);
+			return TryGetGreater(root, value, out result);
 		}
 
-		private static bool GetGreater(Node node, T value, out T result)
+		private static bool TryGetGreater(Node node, T value, out T result)
 		{
 			result = default(T);
 			if (node == null)
 				return false;
 			if (node.value.CompareTo(value) <= 0)
-				return GetGreater(node.right, value, out result);
-			if (GetGreater(node.left, value, out result))
+				return TryGetGreater(node.right, value, out result);
+			if (TryGetGreater(node.left, value, out result))
 				return true;
 			result = node.value;
 			return true;
 		}
 
-		public bool GetLesser(T value, out T result)
+		public bool TryGetLesser(T value, out T result)
 		{
-			return GetLesser(root, value, out result);
+			return TryGetLesser(root, value, out result);
 		}
 
-		private static bool GetLesser(Node node, T value, out T result)
+		private static bool TryGetLesser(Node node, T value, out T result)
 		{
 			result = default(T);
 			if (node == null)
 				return false;
 			if (node.value.CompareTo(value) >= 0)
-				return GetLesser(node.left, value, out result);
-			if (GetLesser(node.right, value, out result))
+				return TryGetLesser(node.left, value, out result);
+			if (TryGetLesser(node.right, value, out result))
 				return true;
 			result = node.value;
 			return true;

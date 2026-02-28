@@ -73,9 +73,21 @@ namespace ForFreePrimitivesTests
 		{
 			var tree = new RBTree<int>();
 			var counter = new Dictionary<int, int>();
+			var minValue = 0;
+			var maxValue = 0;
 			for (var i = 0; i < testcase.Length; i += 1)
 			{
 				var num = testcase[i];
+				if (i == 0)
+				{
+					minValue = num;
+					maxValue = num;
+				}
+				else
+				{
+					minValue = Math.Min(minValue, num);
+					maxValue = Math.Max(maxValue, num);
+				}
 				if (counter.TryGetValue(num, out var count))
 				{
 					count += 1;
@@ -90,6 +102,8 @@ namespace ForFreePrimitivesTests
 				var treeCount = tree.GetCount(num);
 				Assert.IsTrue(treeCount == count, $"[{Tools.Dump(testcase)}] at {i}: {count} != {treeCount}");
 				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] at {i} validation failed");
+				Assert.IsTrue(tree.Min == minValue, $"[{Tools.Dump(testcase)}] at {i}: {minValue} != {tree.Min}");
+				Assert.IsTrue(tree.Max == maxValue, $"[{Tools.Dump(testcase)}] at {i}: {maxValue} != {tree.Max}");
 				var sortedPart = new int[i + 1];
 				Array.Copy(testcase, 0, sortedPart, 0, sortedPart.Length);
 				Array.Sort(sortedPart);
@@ -105,7 +119,7 @@ namespace ForFreePrimitivesTests
 				if ((i > 0) && (sorted[i - 1] != sorted[i]))
 				{
 					lesserCount = i;
-					Assert.IsTrue(tree.GetLesser(sorted[i], out var lesser) && (lesser == sorted[i - 1]));
+					Assert.IsTrue(tree.TryGetLesser(sorted[i], out var lesser) && (lesser == sorted[i - 1]));
 				}
 				Assert.IsTrue(tree.GetLesserCount(sorted[i]) == lesserCount);
 			}
@@ -115,7 +129,7 @@ namespace ForFreePrimitivesTests
 				if ((i < sorted.Length - 1) && (sorted[i + 1] != sorted[i]))
 				{
 					greaterCount = sorted.Length - i - 1;
-					Assert.IsTrue(tree.GetGreater(sorted[i], out var greater) && (greater == sorted[i + 1]));
+					Assert.IsTrue(tree.TryGetGreater(sorted[i], out var greater) && (greater == sorted[i + 1]));
 				}
 				Assert.IsTrue(tree.GetGreaterCount(sorted[i]) == greaterCount);
 			}
@@ -144,6 +158,13 @@ namespace ForFreePrimitivesTests
 				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] [{Tools.Dump(list.ToArray())}] remove {current.Value}");
 				list.Remove(current);
 				Assert.IsTrue(Enumerable.SequenceEqual(list, tree), $"[{Tools.Dump(testcase)}] ({testcase.Length - list.Count}/{testcase.Length}) [{Tools.Dump(list.ToArray())}] != [{Tools.Dump(tree.ToArray())}]");
+				Assert.IsTrue(tree.Count == list.Count, $"[{Tools.Dump(testcase)}] [{Tools.Dump(list.ToArray())}] {list.Count} != {tree.Count}");
+				if (list.Count > 0)
+				{
+					Assert.IsTrue(tree.Min == list.First.Value, $"[{Tools.Dump(testcase)}] [{Tools.Dump(list.ToArray())}]: {list.First.Value} != {tree.Min}");
+					Assert.IsTrue(tree.Max == list.Last.Value, $"[{Tools.Dump(testcase)}] [{Tools.Dump(list.ToArray())}]: {list.Last.Value} != {tree.Max}");
+				}
+				
 			}
 		}
 	}
