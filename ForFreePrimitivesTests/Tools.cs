@@ -10,6 +10,11 @@ namespace ForFreePrimitivesTests
 			return Dump(nums, 0, nums.Length - 1);
 		}
 
+		public static string Dump(int[] nums, int left)
+		{
+			return Dump(nums, left, nums.Length - 1);
+		}
+
 		public static string Dump(int[] nums, int left, int right)
 		{
 			var sb = new StringBuilder();

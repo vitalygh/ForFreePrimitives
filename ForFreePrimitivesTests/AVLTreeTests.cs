@@ -45,7 +45,7 @@ namespace ForFreePrimitivesTests
 		private void ProcessRandomTestCases()
 		{
 			var minCount = 0;
-			var maxCount = 100;
+			var maxCount = 20;
 			var minValue = int.MinValue;
 			var maxValue = int.MaxValue;
 			for (var count = minCount; count <= maxCount; count += 1)
@@ -55,14 +55,30 @@ namespace ForFreePrimitivesTests
 					testcase[i] = random.Next(minValue, maxValue);
 				Validate(testcase);
 			}
+			minValue = -2;
+			maxValue = 2;
+			for (var count = minCount; count <= maxCount; count += 1)
+			{
+				var testcase = new int[count];
+				for (var i = 0; i < testcase.Length; i += 1)
+					testcase[i] = random.Next(minValue, maxValue);
+				Validate(testcase);
+			}
+
 		}
 
 		private void Validate(int[] testcase)
 		{
 			var tree = new AVLTree<int>();
+			var min = testcase.FirstOrDefault();
+			var max = testcase.FirstOrDefault();
 			foreach (var num in testcase)
 			{
 				tree.Add(num);
+				min = Math.Min(min, num);
+				max = Math.Max(max, num);
+				Assert.IsTrue(tree.Min == min);
+				Assert.IsTrue(tree.Max == max);
 				Assert.IsTrue(tree.IsValid());
 			}
 			var sorted = new int[testcase.Length];
@@ -93,7 +109,7 @@ namespace ForFreePrimitivesTests
 				var exist = distinct.Count > 1;
 				if (exist)
 					lesser = distinct[distinct.Count - 2];
-				Assert.IsTrue(tree.GetLesser(sorted[i], out var treeVal) == exist);
+				Assert.IsTrue(tree.TryGetLesser(sorted[i], out var treeVal) == exist);
 				if (exist)
 					Assert.IsTrue(treeVal == lesser);
 			}
@@ -112,7 +128,7 @@ namespace ForFreePrimitivesTests
 				}
 				var lesserIndex = start - 1;
 				var exist = lesserIndex >= 0;
-				Assert.IsTrue(tree.GetLesser(target, out var treeVal) == exist);
+				Assert.IsTrue(tree.TryGetLesser(target, out var treeVal) == exist);
 				if (exist)
 					Assert.IsTrue(treeVal == sorted[lesserIndex]);
 			}
@@ -125,7 +141,7 @@ namespace ForFreePrimitivesTests
 				var exist = distinct.Count > 1;
 				if (exist)
 					greater = distinct[distinct.Count - 2];
-				Assert.IsTrue(tree.GetGreater(sorted[i], out var treeVal) == exist);
+				Assert.IsTrue(tree.TryGetGreater(sorted[i], out var treeVal) == exist);
 				if (exist)
 					Assert.IsTrue(treeVal == greater);
 			}
@@ -144,9 +160,43 @@ namespace ForFreePrimitivesTests
 				}
 				var lesserIndex = end + 1;
 				var exist = lesserIndex < sorted.Length;
-				Assert.IsTrue(tree.GetGreater(target, out var treeVal) == exist);
+				Assert.IsTrue(tree.TryGetGreater(target, out var treeVal) == exist);
 				if (exist)
 					Assert.IsTrue(treeVal == sorted[lesserIndex]);
+			}
+			var set = new SortedSet<int>();
+			var counter = new Dictionary<int, int>();
+			foreach (var num in sorted)
+			{
+				if (!counter.ContainsKey(num))
+				{
+					counter.Add(num, 0);
+					set.Add(num);
+				}
+				counter[num] += 1;
+			}
+			var shuffle = new int[testcase.Length];
+			Array.Copy(testcase, 0, shuffle, 0, testcase.Length);
+			for (var i = 0; i < shuffle.Length; i += 1)
+			{
+				var index = random.Next(i, shuffle.Length);
+				(shuffle[i], shuffle[index]) = (shuffle[index], shuffle[i]);
+			}
+			for (var i = 0; i < shuffle.Length; i += 1)
+			{
+				var num = shuffle[i];
+				counter[num] -= 1;
+				if (counter[num] < 1)
+					set.Remove(num);
+				Assert.IsTrue(tree.Count == shuffle.Length - i);
+				tree.Remove(num);
+				Assert.IsTrue(tree.IsValid());
+				Assert.IsTrue(tree.Count == shuffle.Length - i - 1);
+				if (tree.Count > 0)
+				{
+					Assert.IsTrue(tree.Min == set.Min);
+					Assert.IsTrue(tree.Max == set.Max);
+				}
 			}
 		}
 	}

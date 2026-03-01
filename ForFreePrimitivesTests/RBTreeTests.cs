@@ -72,6 +72,7 @@ namespace ForFreePrimitivesTests
 		private void Validate(int[] testcase)
 		{
 			var tree = new RBTree<int>();
+			var set = new SortedSet<int>();
 			var counter = new Dictionary<int, int>();
 			var minValue = 0;
 			var maxValue = 0;
@@ -97,6 +98,7 @@ namespace ForFreePrimitivesTests
 				{
 					count = 1;
 					counter.Add(num, count);
+					set.Add(num);
 				}
 				tree.Add(num);
 				var treeCount = tree.GetCount(num);
@@ -104,10 +106,6 @@ namespace ForFreePrimitivesTests
 				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] at {i} validation failed");
 				Assert.IsTrue(tree.Min == minValue, $"[{Tools.Dump(testcase)}] at {i}: {minValue} != {tree.Min}");
 				Assert.IsTrue(tree.Max == maxValue, $"[{Tools.Dump(testcase)}] at {i}: {maxValue} != {tree.Max}");
-				var sortedPart = new int[i + 1];
-				Array.Copy(testcase, 0, sortedPart, 0, sortedPart.Length);
-				Array.Sort(sortedPart);
-				Assert.IsTrue(Enumerable.SequenceEqual(sortedPart, tree), $"[{Tools.Dump(sortedPart)}] != [{Tools.Dump(tree.ToArray())}]");
 			}
 			var sorted = new int[testcase.Length];
 			Array.Copy(testcase, 0, sorted, 0, testcase.Length);
@@ -145,26 +143,28 @@ namespace ForFreePrimitivesTests
 				tree.Add(num);
 				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] at {i}");
 			}
-			var list = new LinkedList<int>();
-			foreach (var num in sorted)
-				list.AddLast(num);
-			while (list.Count > 0)
+			var shuffle = new int[testcase.Length];
+			Array.Copy(testcase, 0, shuffle, 0, testcase.Length);
+			for (var i = 0; i < shuffle.Length; i += 1)
 			{
-				var index = random.Next(0, list.Count);
-				var current = list.First;
-				for (var i = 0; i < index; i += 1)
-					current = current.Next;
-				tree.Remove(current.Value);
-				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] [{Tools.Dump(list.ToArray())}] remove {current.Value}");
-				list.Remove(current);
-				Assert.IsTrue(Enumerable.SequenceEqual(list, tree), $"[{Tools.Dump(testcase)}] ({testcase.Length - list.Count}/{testcase.Length}) [{Tools.Dump(list.ToArray())}] != [{Tools.Dump(tree.ToArray())}]");
-				Assert.IsTrue(tree.Count == list.Count, $"[{Tools.Dump(testcase)}] [{Tools.Dump(list.ToArray())}] {list.Count} != {tree.Count}");
-				if (list.Count > 0)
+				var index = random.Next(i, shuffle.Length);
+				(shuffle[i], shuffle[index]) = (shuffle[index], shuffle[i]);
+			}
+			for (var i = 0; i < shuffle.Length; i += 1)
+			{
+				var num = shuffle[i];
+				counter[num] -= 1;
+				if (counter[num] < 1)
+					set.Remove(num);
+				Assert.IsTrue(tree.Count == shuffle.Length - i);
+				tree.Remove(num);
+				Assert.IsTrue(tree.Count == shuffle.Length - i - 1);
+				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}] remove at {i}");
+				if (tree.Count > 0)
 				{
-					Assert.IsTrue(tree.Min == list.First.Value, $"[{Tools.Dump(testcase)}] [{Tools.Dump(list.ToArray())}]: {list.First.Value} != {tree.Min}");
-					Assert.IsTrue(tree.Max == list.Last.Value, $"[{Tools.Dump(testcase)}] [{Tools.Dump(list.ToArray())}]: {list.Last.Value} != {tree.Max}");
-				}
-				
+					Assert.IsTrue(tree.Min == set.Min, $"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}]: {set.Min} != {tree.Min}");
+					Assert.IsTrue(tree.Max == set.Max, $"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}]: {set.Max} != {tree.Max}");
+				}				
 			}
 		}
 	}

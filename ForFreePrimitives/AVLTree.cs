@@ -22,6 +22,9 @@ namespace ForFreePrimitives
 				this.tree = tree;
 			}
 
+			public int Count { get => count; }
+			public T Value { get => value; }
+
 			public void Add(T item)
 			{
 				var result = item.CompareTo(value);
@@ -34,6 +37,8 @@ namespace ForFreePrimitives
 						{
 							parent = this, 
 						};
+						if (tree.minItem == this)
+							tree.minItem = left;
 						left.Reconstruct();
 					}
 				else
@@ -45,6 +50,8 @@ namespace ForFreePrimitives
 						{ 
 							parent = this, 
 						};
+						if (tree.maxItem == this)
+							tree.maxItem = right;
 						right.Reconstruct();
 					}
 			}
@@ -57,6 +64,7 @@ namespace ForFreePrimitives
 				if (result > 0)
 					return right == null ? false : right.Remove(item);
 				if ((left == null) && (right == null))
+				{
 					if (parent != null)
 					{
 						if (parent.left == this)
@@ -67,6 +75,11 @@ namespace ForFreePrimitives
 					}
 					else
 						tree.root = null;
+					if (tree.minItem == this)
+						tree.minItem = parent;
+					if (tree.maxItem == this)
+						tree.maxItem = parent;
+				}
 				else if ((left == null) || (right == null))
 				{
 					var child = left ?? right;
@@ -84,6 +97,10 @@ namespace ForFreePrimitives
 						tree.root = child;
 						child.parent = null;
 					}
+					if (tree.minItem == this)
+						tree.minItem = child;
+					if (tree.maxItem == this)
+						tree.maxItem = child;
 				}
 				else
 				{
@@ -226,25 +243,25 @@ namespace ForFreePrimitives
 				return count;
 			}
 
-			public bool GetGreater(T item, out T result)
+			public bool TryGetGreater(T item, out T result)
 			{
 				result = default;
 				var cmp = value.CompareTo(item);
 				if (cmp <= 0)
-					return right?.GetGreater(item, out result) ?? false;
-				if (left?.GetGreater(item, out result) ?? false)
+					return right?.TryGetGreater(item, out result) ?? false;
+				if (left?.TryGetGreater(item, out result) ?? false)
 					return true;
 				result = value;
 				return true;
 			}
 
-			public bool GetLesser(T item, out T result)
+			public bool TryGetLesser(T item, out T result)
 			{
 				result = default;
 				var cmp = value.CompareTo(item);
 				if (cmp >= 0)
-					return left?.GetLesser(item, out result) ?? false;
-				if (right?.GetLesser(item, out result) ?? false)
+					return left?.TryGetLesser(item, out result) ?? false;
+				if (right?.TryGetLesser(item, out result) ?? false)
 					return true;
 				result = value;
 				return true;
@@ -252,13 +269,23 @@ namespace ForFreePrimitives
 		}
 
 		private Node root = null;
+		private Node minItem = null;
+		private Node maxItem = null;
+
+		public int Count => root?.Count ?? 0;
+		public T Min => minItem.Value;
+		public T Max => maxItem.Value;
 
 		public void Add(T item)
 		{
 			if (root != null)
 				root.Add(item);
 			else
+			{
 				root = new Node(item, this);
+				minItem = root;
+				maxItem = root;
+			}
 		}
 
 		public bool Remove(T item)
@@ -295,16 +322,16 @@ namespace ForFreePrimitives
 			return root?.GetLesserCount(item) ?? 0;
 		}
 
-		public bool GetGreater(T item, out T result)
+		public bool TryGetGreater(T item, out T result)
 		{
 			result = default;
-			return root?.GetGreater(item, out result) ?? false;
+			return root?.TryGetGreater(item, out result) ?? false;
 		}
 
-		public bool GetLesser(T item, out T result)
+		public bool TryGetLesser(T item, out T result)
 		{
 			result = default;
-			return root?.GetLesser(item, out result) ?? false;
+			return root?.TryGetLesser(item, out result) ?? false;
 		}
 	}
 }
