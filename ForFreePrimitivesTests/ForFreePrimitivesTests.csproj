@@ -115,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AVLTreeTests.cs" />
+    <Compile Include="BinaryLiftingTests.cs" />
     <Compile Include="BinPowTests.cs" />
     <Compile Include="BITTest.cs" />
     <Compile Include="Tools.cs" />

@@ -125,9 +125,12 @@ namespace ForFreePrimitivesTests
 					var (v, c) = tree.Query(i, j);
 					var length = j - i + 1;
 					if (2 * counter[max] > length)
-						Assert.IsTrue((v == max) && (c == counter[max]), $"[{Tools.Dump(nums)}] [{i}..{j}] ({v}, {c}) != ({max}, {counter[max]})");
-					else
-						Assert.IsTrue(2 * c <= length, $"[{Tools.Dump(nums)}] [{i}..{j}] ({v}, {c}) 2 * {c} > {length}");
+					{
+						if (!((v == max) && (c == counter[max])))
+							Assert.Fail($"[{Tools.Dump(nums)}] [{i}..{j}] ({v}, {c}) != ({max}, {counter[max]})");
+					}
+					else if (!(2 * c <= length))
+						Assert.Fail($"[{Tools.Dump(nums)}] [{i}..{j}] ({v}, {c}) 2 * {c} > {length}");
 				}
 		}
 
@@ -160,8 +163,10 @@ namespace ForFreePrimitivesTests
 					}
 					var treeMin = minMaxTestTree.GetMin(i, j);
 					var treeMax = minMaxTestTree.GetMax(i, j);
-					Assert.IsTrue(min == treeMin, $"[{Tools.Dump(minMaxTest)}] [{i}..{j}] min {min} != {treeMin}");
-					Assert.IsTrue(max == treeMax, $"[{Tools.Dump(minMaxTest)}] [{i}..{j}] max {max} != {treeMax}");
+					if (min != treeMin)
+						Assert.Fail($"[{Tools.Dump(minMaxTest)}] [{i}..{j}] min {min} != {treeMin}");
+					if (max != treeMax)
+						Assert.Fail($"[{Tools.Dump(minMaxTest)}] [{i}..{j}] max {max} != {treeMax}");
 				}
 
 			var zeroTest = new int[length];
@@ -187,7 +192,8 @@ namespace ForFreePrimitivesTests
 					if (zeroTest[j] == 0)
 						lastZero = j;
 					var treeLastZero = zeroTestTree.GetLastZeroIndex(i, j);
-					Assert.IsTrue(lastZero == treeLastZero, $"[{Tools.Dump(zeroTest)}] [{i}..{j}] last zero index {lastZero} != {treeLastZero}");
+					if (lastZero != treeLastZero)
+						Assert.Fail($"[{Tools.Dump(zeroTest)}] [{i}..{j}] last zero index {lastZero} != {treeLastZero}");
 				}
 			}
 		}	
@@ -226,10 +232,14 @@ namespace ForFreePrimitivesTests
 					var treeMin = minTree.GetValueInBounds(i, j);
 					var treeFirstGreater = maxTree.GetFirstGreater(greaterTarget, i, j);
 					var treeLastGreater = maxTree.GetLastGreater(greaterTarget, i, j);
-					Assert.IsTrue(max == treeMax, $"[{Tools.Dump(testData)}] [{i},{j}] max {max} != {treeMax}");
-					Assert.IsTrue(min == treeMin, $"[{Tools.Dump(testData)}] [{i},{j}] min {min} != {treeMin}");
-					Assert.IsTrue(firstGreater == treeFirstGreater, $"[{Tools.Dump(testData)}] [{i},{j}] first greater for {greaterTarget} is {firstGreater} != {treeFirstGreater}");
-					Assert.IsTrue(lastGreater == treeLastGreater, $"[{Tools.Dump(testData)}] [{i},{j}] last greater for {greaterTarget} is {lastGreater} != {treeLastGreater}");
+					if (max != treeMax)
+						Assert.Fail($"[{Tools.Dump(testData)}] [{i},{j}] max {max} != {treeMax}");
+					if (min != treeMin)
+						Assert.Fail($"[{Tools.Dump(testData)}] [{i},{j}] min {min} != {treeMin}");
+					if (firstGreater != treeFirstGreater)
+						Assert.Fail($"[{Tools.Dump(testData)}] [{i},{j}] first greater for {greaterTarget} is {firstGreater} != {treeFirstGreater}");
+					if (lastGreater != treeLastGreater)
+						Assert.Fail($"[{Tools.Dump(testData)}] [{i},{j}] last greater for {greaterTarget} is {lastGreater} != {treeLastGreater}");
 				}
 		}
 

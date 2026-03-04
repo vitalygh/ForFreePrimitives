@@ -58,6 +58,7 @@
     <Compile Include="BinPow.cs" />
     <Compile Include="BIT.cs" />
     <Compile Include="Combinatorics.cs" />
+    <Compile Include="BinaryLifting.cs" />
     <Compile Include="Numbers.cs" />
     <Compile Include="KMP.cs" />
     <Compile Include="PrimeNumbers.cs" />

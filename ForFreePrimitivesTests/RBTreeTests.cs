@@ -102,15 +102,20 @@ namespace ForFreePrimitivesTests
 				}
 				tree.Add(num);
 				var treeCount = tree.GetCount(num);
-				Assert.IsTrue(treeCount == count, $"[{Tools.Dump(testcase)}] at {i}: {count} != {treeCount}");
-				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] at {i} validation failed");
-				Assert.IsTrue(tree.Min == minValue, $"[{Tools.Dump(testcase)}] at {i}: {minValue} != {tree.Min}");
-				Assert.IsTrue(tree.Max == maxValue, $"[{Tools.Dump(testcase)}] at {i}: {maxValue} != {tree.Max}");
+				if (treeCount != count)
+				Assert.Fail($"[{Tools.Dump(testcase)}] at {i}: {count} != {treeCount}");
+				if (!tree.IsValid())
+					Assert.Fail($"[{Tools.Dump(testcase)}] at {i} validation failed");
+				if (tree.Min != minValue)
+				Assert.Fail($"[{Tools.Dump(testcase)}] at {i}: {minValue} != {tree.Min}");
+				if (tree.Max != maxValue)
+					Assert.Fail($"[{Tools.Dump(testcase)}] at {i}: {maxValue} != {tree.Max}");
 			}
 			var sorted = new int[testcase.Length];
 			Array.Copy(testcase, 0, sorted, 0, testcase.Length);
 			Array.Sort(sorted);
-			Assert.IsTrue(Enumerable.SequenceEqual(sorted, tree), $"[{Tools.Dump(sorted)}] != [{Tools.Dump(tree.ToArray())}]");
+			if (!Enumerable.SequenceEqual(sorted, tree))
+				Assert.Fail($"[{Tools.Dump(sorted)}] != [{Tools.Dump(tree.ToArray())}]");
 			var lesserCount = 0;
 			for (var i = 0; i < sorted.Length; i += 1)
 			{
@@ -135,13 +140,15 @@ namespace ForFreePrimitivesTests
 			{
 				var num = testcase[i];
 				tree.Remove(num);
-				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] at {i}");
+				if (!tree.IsValid())
+					Assert.Fail($"[{Tools.Dump(testcase)}] at {i}");
 			}
 			for (var i = 0; i < testcase.Length; i += 1)
 			{
 				var num = testcase[i];
 				tree.Add(num);
-				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] at {i}");
+				if (!tree.IsValid())
+					Assert.Fail($"[{Tools.Dump(testcase)}] at {i}");
 			}
 			var shuffle = new int[testcase.Length];
 			Array.Copy(testcase, 0, shuffle, 0, testcase.Length);
@@ -159,11 +166,14 @@ namespace ForFreePrimitivesTests
 				Assert.IsTrue(tree.Count == shuffle.Length - i);
 				tree.Remove(num);
 				Assert.IsTrue(tree.Count == shuffle.Length - i - 1);
-				Assert.IsTrue(tree.IsValid(), $"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}] remove at {i}");
+				if (!tree.IsValid())
+					Assert.Fail($"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}] remove at {i}");
 				if (tree.Count > 0)
 				{
-					Assert.IsTrue(tree.Min == set.Min, $"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}]: {set.Min} != {tree.Min}");
-					Assert.IsTrue(tree.Max == set.Max, $"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}]: {set.Max} != {tree.Max}");
+					if (tree.Min != set.Min)
+						Assert.Fail($"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}]: {set.Min} != {tree.Min}");
+					if (tree.Max != set.Max)
+						Assert.Fail($"[{Tools.Dump(testcase)}] [{Tools.Dump(shuffle.ToArray(), i + 1)}]: {set.Max} != {tree.Max}");
 				}				
 			}
 		}
