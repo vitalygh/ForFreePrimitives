@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ForFreePrimitives
 {
@@ -40,6 +41,37 @@ namespace ForFreePrimitives
             tout[node] = time;
         }
 
+        private static IEnumerable<(int u, int v)> ToEdges(IList<int> parents)
+        {
+            for (var i = 0; i < parents.Count; i += 1)
+                if (parents[i] >= 0)
+                    yield return (parents[i], i);
+        }
+
+        public static List<int>[] BuildGraph(IList<int> parents, bool directed = false)
+        {
+            return BuildGraph(parents.Count, ToEdges(parents), directed);
+        }
+
+        public static List<int>[] BuildGraph(int n, IEnumerable<IList<int>> edges, bool directed = false)
+        {
+            return BuildGraph(n, edges.Select((x) => (x[0], x[1])), directed);
+        }
+
+        public static List<int>[] BuildGraph(int n, IEnumerable<(int u, int v)> edges, bool directed = false)
+        {
+            var graph = new List<int>[n];
+            for (var i = 0; i < graph.Length; i += 1)
+                graph[i] = new List<int>();
+            foreach (var (u, v) in edges)
+            {
+                graph[u].Add(v);
+                if (!directed)
+                    graph[v].Add(u);
+            }
+            return graph;
+        }
+
         public int GetTimeIn(int v) => tin[v];
         public int GetTimeOut(int v) => tout[v];
         public int GetParent(int v, int shift) => up[v][shift];
@@ -59,6 +91,26 @@ namespace ForFreePrimitives
                 if (!IsAncestor(up[u][i], v))
                     u = up[u][i];
             return up[u][0];
+        }
+
+        public int GetAncestor(int node, int distance)
+        {
+            if (distance <= 0)
+                return node;
+            distance -= 1;
+            var shift = 0;
+            while (distance > 0)
+            {
+                if (shift >= maxShift)
+                    return -1;
+                if ((distance & 1) != 0)
+                    node = up[node][shift];
+                distance >>= 1;
+                shift += 1;
+            }
+            if (up[node][0] != node)
+                return up[node][0];
+            return -1;
         }
     }
 }

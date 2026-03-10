@@ -19,7 +19,7 @@ namespace ForFreePrimitivesTests
 			ProcessRandomTestcases();
 		}
 
-		private static readonly (int root, (int, int)[] edges, (int, int)[] query, int[] lca)[] testcases = new[]
+		private static readonly (int root, (int, int)[] edges, (int, int)[] query, int[] lca)[] lcaTestcases = new[]
 		{
 			(0, new[] { (0,1),(1,3),(1,8),(0,2),(5,7),(4,5),(2,4),(7,9),(3,6) },
 				new[] { (8,8), (7,2), (9,6) },
@@ -33,11 +33,17 @@ namespace ForFreePrimitivesTests
 				new[] { (86,86), (86,10), (47,26), (62,49), (72,13), (38,36), (46,17), (72,36), (36,11), (24,61), (51,21) },
 				new [] { 86, 1, 0, 0, 10, 2, 1, 2, 2, 1, 0 } ),
 		};
+		private static readonly (int root, (int, int)[] edges, (int, int)[] query, int[] ancestors)[] kthAncestorTestcases = new[]
+		{
+			(0, new[] { (0,3),(7,3),(9,7),(8,7),(1,8),(6,9),(4,9),(2,9),(5,7) }, new[] { (9, 0), (9, 1), (9, 2), (9, 3), (9, 4) }, new[] { 9, 7, 3, 0, -1 }),
+		};
 
 		private void ProcessDefinedTestcases()
 		{
-			foreach (var (root, edges, query, lca) in testcases)
-				Validate(root, edges, query, lca);
+			foreach (var (root, edges, query, lca) in lcaTestcases)
+				ValidateLCA(root, edges, query, lca);
+			foreach (var (root, edges, query, ancestors) in kthAncestorTestcases)
+				ValidateKthAncestor(root, edges, query, ancestors);
 		}
 
 		private (int, int)[] MakeTreeEdges(int n)
@@ -60,19 +66,6 @@ namespace ForFreePrimitivesTests
 				rooted.Add(nodes[i]);
 			}
 			return edges;
-		}
-
-		private List<int>[] MakeGraph((int, int)[] edges)
-		{
-			var graph = new List<int>[edges.Length + 1];
-			for (var i = 0; i < graph.Length; i += 1)
-				graph[i] = new List<int>();
-			foreach (var (u, v) in edges)
-			{
-				graph[u].Add(v);
-				graph[v].Add(u);
-			}
-			return graph;
 		}
 
 		private (List<int> children, int parent)[] MakeTree(List<int>[] graph, int root)
@@ -150,7 +143,7 @@ namespace ForFreePrimitivesTests
 			for (var i = 0; i < count; i += 1)
 			{
 				var edges = MakeTreeEdges(treeSize);
-				var graph = MakeGraph(edges);
+				var graph = BinaryLifting.BuildGraph(edges.Length + 1, edges);
 				var root = random.Next(0, graph.Length);
 				var tree = MakeTree(graph, root);
 				var queries = new (int, int)[qCount];
@@ -173,7 +166,27 @@ namespace ForFreePrimitivesTests
 					queries[j] = (u, v);
 					lcas[j] = lca;
 				}
-				Validate(root, edges, graph, queries, lcas);
+				ValidateLCA(root, edges, graph, queries, lcas);
+				var ancestorQueries = new (int, int)[tree.Length];
+				var ancestorResult = new int[ancestorQueries.Length];
+				int index = -1;
+				void BuildAncestorQueries(int n, int p, int[] anc, int length)
+				{
+					index += 1;
+					anc[length] = n;
+					length += 1;
+					var k = random.Next(0, length + 1);
+					ancestorQueries[index] = (n, k);
+					if (k >= length)
+						ancestorResult[index] = -1;
+					else
+						ancestorResult[index] = anc[length - k - 1];
+					foreach (var c in graph[n])
+						if (c != p)
+							BuildAncestorQueries(c, n, anc, length);
+				}
+				BuildAncestorQueries(root, root, new int[tree.Length], 0);
+				ValidateKthAncestor(root, edges, graph, ancestorQueries, ancestorResult);
 			}
 		}
 
@@ -194,12 +207,12 @@ namespace ForFreePrimitivesTests
 			return $"({root}, new[] {{{DumpEdges(edges)}}}, new[] {{ ({u}, {v}) }}, new[] {{ {lca} }})";
 		}
 
-		private void Validate(int root, (int, int)[] edges, (int, int)[] query, int[] lca)
+		private void ValidateLCA(int root, (int, int)[] edges, (int, int)[] query, int[] lca)
 		{
-			Validate(root, edges, MakeGraph(edges), query, lca);
+			ValidateLCA(root, edges, BinaryLifting.BuildGraph(edges.Length + 1, edges), query, lca);
 		}
 
-		private void Validate(int root, (int, int)[] edges, List<int>[] graph, (int, int)[] query, int[] lca)
+		private void ValidateLCA(int root, (int, int)[] edges, List<int>[] graph, (int, int)[] query, int[] lca)
 		{
 			Assert.IsTrue(ValidateTree(graph, root));
 			var binaryLifting = new BinaryLifting(graph.Length, root, (x) => graph[x]);
@@ -213,6 +226,24 @@ namespace ForFreePrimitivesTests
 					Assert.Fail($"{DumpTestcase(root, edges, u, v, lca[i])} IsAncestor({lca[i]}, {u}) == false");
 				if (!binaryLifting.IsAncestor(lca[i], v))
 					Assert.Fail($"{DumpTestcase(root, edges, u, v, lca[i])} IsAncestor({lca[i]}, {v}) == false");
+			}
+		}
+
+		private void ValidateKthAncestor(int root, (int, int)[] edges, (int, int)[] query, int[] ancestor)
+		{
+			ValidateKthAncestor(root, edges, BinaryLifting.BuildGraph(edges.Length + 1, edges), query, ancestor);
+		}
+
+		private void ValidateKthAncestor(int root, (int, int)[] edges, List<int>[] graph, (int, int)[] query, int[] ancestor)
+		{
+			Assert.IsTrue(ValidateTree(graph, root));
+			var binaryLifting = new BinaryLifting(graph.Length, root, (x) => graph[x]);
+			for (var i = 0; i < query.Length; i += 1)
+			{
+				var (node, k) = query[i];
+				var anc = binaryLifting.GetAncestor(node, k);
+				if (anc != ancestor[i])
+					Assert.Fail($"{DumpTestcase(root, edges, node, k, ancestor[i])} {anc} != {ancestor[i]}");
 			}
 		}
 	}
