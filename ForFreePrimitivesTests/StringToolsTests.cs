@@ -7,7 +7,7 @@ using System.Linq;
 namespace ForFreePrimitivesTests
 {
 	[TestClass]
-	public class KMPTests
+	public class StringToolsTests
 	{
 		[TestMethod]
 		public void Tests()
@@ -104,10 +104,31 @@ namespace ForFreePrimitivesTests
 			("ababababbabababbababababbababababbabababa", "abab", 0),
 		};
 
+		private static readonly string [] zTestcases = new string[]
+		{
+			"aaabaab",
+			"abcdefgh",
+			"aabbaabbcd",
+			"ititititvt",
+			"abcababacdabcababad",
+		};
+
+		private static readonly string[] manacherTestcases = new string[]
+		{
+			"abcdefgh",
+			"abababaa",
+			"ababbabbaba",
+			"aaaaaaaaaaa",
+		};
+
 		private void ProcessDefinedTestCases()
 		{
 			foreach ((var text, var pattern, _) in kmpTestcases)
-				Validate(text, pattern);
+				ValidateKMP(text, pattern);
+			foreach (var text in zTestcases)
+				ValidateZ(text);
+			foreach (var text in manacherTestcases)
+				ValidateManacher(text);
 		}
 
 		private List<int> GetValidResult(string text, string pattern)
@@ -125,11 +146,84 @@ namespace ForFreePrimitivesTests
 			return result;
 		}
 
-		private void Validate(string text, string pattern)
+		private void ValidateKMP(string text, string pattern)
 		{
-			var result = KMP.Find(text, pattern);
+			var result = StringTools.KMP(text, pattern);
 			var validResult = GetValidResult(text, pattern);
 			Assert.IsTrue((result != null) && (result.Count == validResult.Count) && Enumerable.SequenceEqual(result, validResult), $"text: {text}, pattern: {pattern}");
+		}
+
+		private int CalcZ(string text, int index)
+		{
+			for (var i = index; i < text.Length; i += 1)
+				if (text[i] != text[i - index])
+					return i - index;
+			return text.Length - index;
+		}
+
+		private void ValidateZ(string text)
+		{
+			var zf = new int[text.Length];
+			StringTools.ZFunction(i => text[i], text.Length, zf);
+			for (var i = 1; i < text.Length; i += 1)
+			{
+				var val = CalcZ(text, i);
+				if (zf[i] != val)
+					Assert.Fail($"\"{text}\" at {i}: {zf[i]} != {val}");
+			}
+		}
+
+		private int PalindromeOddSize(string text, int index)
+		{
+			var size = 1;
+			for (var i = 1; i < text.Length; i += 1)
+			{
+				var l = index - i;
+				if (l < 0)
+					break;
+				var r = index + i;
+				if (r >= text.Length)
+					break;
+				if (text[l] != text[r])
+					break;
+				size += 1;
+			}
+			return size;
+		}
+
+		private int PalindromeEvenSize(string text, int index)
+		{
+			var size = 0;
+			for (var i = 0; i < text.Length; i += 1)
+			{
+				var l = index - i;
+				if (l < 0)
+					break;
+				var r = index + i + 1;
+				if (r >= text.Length)
+					break;
+				if (text[l] != text[r])
+					break;
+				size += 1;
+			}
+			return size;
+		}
+
+		private void ValidateManacher(string text)
+		{
+			var odd = new int[text.Length];
+			var even = new int[text.Length];
+			StringTools.ManacherOdd(i => text[i], text.Length, odd);
+			StringTools.ManacherEven(i => text[i], text.Length, even);
+			for (var i = 0; i < text.Length; i += 1)
+			{
+				var rOdd = PalindromeOddSize(text, i);
+				var rEven = PalindromeEvenSize(text, i);
+				if (odd[i] != rOdd)
+					Assert.Fail($"\"{text}\" odd at {i}: {odd[i]} != {rOdd}");
+				if (even[i] != rEven)
+					Assert.Fail($"\"{text}\" odd at {i}: {odd[i]} != {rOdd}");
+			}
 		}
 	}
 }
