@@ -121,6 +121,12 @@ namespace ForFreePrimitivesTests
 			"aaaaaaaaaaa",
 		};
 
+		private static readonly (string data, int[] result)[] suffixArrayTestcases = new (string data, int[] result)[]
+		{
+			("ABAACBAB", new int[] { 2,6,0,3,7,1,5,4 }),
+			("abcabxabcd", new int[] { 0,6,3,1,7,4,2,8,9,5 }),
+		};
+
 		private void ProcessDefinedTestCases()
 		{
 			foreach ((var text, var pattern, _) in kmpTestcases)
@@ -129,6 +135,8 @@ namespace ForFreePrimitivesTests
 				ValidateZ(text);
 			foreach (var text in manacherTestcases)
 				ValidateManacher(text);
+			foreach (var (text, arr) in suffixArrayTestcases)
+				ValidateSuffixArray(text, arr);
 		}
 
 		private List<int> GetValidResult(string text, string pattern)
@@ -224,6 +232,14 @@ namespace ForFreePrimitivesTests
 				if (even[i] != rEven)
 					Assert.Fail($"\"{text}\" odd at {i}: {odd[i]} != {rOdd}");
 			}
+		}
+
+		private void ValidateSuffixArray(string text, int[] arr)
+		{
+			var suf = new int[text.Length];
+			StringTools.BuildSuffixArray(i => text[i], suf);
+			if (!Enumerable.SequenceEqual(suf, arr))
+				Assert.Fail($"Testcase failed: \"{text}\", new int[] {{ {Tools.Dump(arr)} }}");
 		}
 	}
 }

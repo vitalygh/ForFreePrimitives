@@ -97,6 +97,43 @@ namespace ForFreePrimitives
             }
         }
 
+        public static void BuildSuffixArray(Func<int, int> data, int[] arr)
+        {
+            var n = arr.Length;
+            var labels = new int[n];
+            for (var i = 0; i < n; i += 1)
+                labels[i] = data(i) + 1;
+            var hl = 1;
+            var grade = new (int a, int b, int i)[n];
+            var rounds = (int)Math.Ceiling(Math.Log(n, 2));
+            for (var r = 0; r < rounds; r += 1)
+            {
+                for (var i = 0; i < n; i += 1)
+                {
+                    var a = labels[i] + 1;
+                    var b = (i + hl) < n ? labels[i + hl] + 1 : 0;
+                    grade[i] = (a, b, i);
+                }
+                Array.Sort(grade, (x, y) =>
+                {
+                    if (x.a == y.a)
+                        return x.b.CompareTo(y.b);
+                    return x.a.CompareTo(y.a);
+                });
+                var label = 0;
+                labels[grade[0].i] = label;
+                for (var i = 1; i < n; i += 1)
+                {
+                    if ((grade[i - 1].a != grade[i].a) || (grade[i - 1].b != grade[i].b))
+                        label += 1;
+                    labels[grade[i].i] = label;
+                }
+                hl *= 2;
+            }
+            for (var i = 0; i < n; i += 1)
+                arr[labels[i]] = i;
+        }
+
         public static void ManacherOdd<T>(Func<int, T> s, int n, int[] d) where T : IComparable
         {
             var l = 0;

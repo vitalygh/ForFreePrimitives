@@ -64,6 +64,7 @@
     <Compile Include="PrimeNumbers.cs" />
     <Compile Include="RBTree.cs" />
     <Compile Include="SegmentTree.cs" />
+    <Compile Include="SuffixTree.cs" />
     <Compile Include="UnionFind.cs" />
   </ItemGroup>
   <ItemGroup>
