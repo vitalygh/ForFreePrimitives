@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ForFreePrimitives;
 
 namespace ForFreePrimitivesTests
@@ -36,6 +37,13 @@ namespace ForFreePrimitivesTests
 			6),
 		};
 
+		private readonly (int[] nums, int[] queries, (int first, int last)[] result)[] minSegmentTreeTestcases = new (int[] nums, int[] queries, (int first, int last)[] result)[]
+		{
+			(new int[] { 5,4,3,2,1,2,4,8,3 },
+			new int[] { 1,2,3,4,5 },
+			new (int first, int last)[] { (-1,-1), (4,4), (3,5), (2,8), (1,8) }),
+		};
+
 		private readonly int[][] majoritySegmentTreeTestcases = new int[][]
 		{
 			new int[] { 1, 1, 2, 2, 1, 2, 3, 3, 4, 3, 3, 3, 4  },
@@ -45,40 +53,47 @@ namespace ForFreePrimitivesTests
 		private readonly (int[] nums, int[][] segments)[] lengthSegmentTreeTestcases = new[]
 		{
 			(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new int[][]
-			{ 
+			{
 				new int[] { 1, 1, 1, 1 },
 				new int[] { 2, 3, 1, 3 },
 				new int[] { 1, 3, 1, 3 },
 				new int[] { 1, 3, -1, 3 },
 				new int[] { 1, 2, -1, 1 },
 				new int[] { 3, 3, -1, 0 },
-			}),			
+			}),
 		};
 
 		private readonly int[][][] segmentTreeTestcases = new[]
 		{
 			new[]
 			{
-				new int[] {	10,	20,	1 },
-				new int[] {	50,	60,	1 },
-				new int[] {	10,	40,	2 },
-				new int[] {	5,	15,	3 },
-				new int[] {	5,	10,	3 },
-				new int[] {	25,	55,	3 },
+				new int[] { 10, 20, 1 },
+				new int[] { 50, 60, 1 },
+				new int[] { 10, 40, 2 },
+				new int[] { 5,  15, 3 },
+				new int[] { 5,  10, 3 },
+				new int[] { 25, 55, 3 },
 			},
 			new[]
 			{
-				new int[] { 24,	40, 1 },
-				new int[] { 43,	50, 1 },
-				new int[] { 27,	43, 2 },
-				new int[] { 5,	21, 2 },
-				new int[] { 30,	40, 3 },
-				new int[] { 14,	29, 3 },
-				new int[] { 3,	19, 3 },
-				new int[] { 3,	14, 3 },
-				new int[] { 25,	39, 4 },
-				new int[] { 6,	19, 4 },
+				new int[] { 24, 40, 1 },
+				new int[] { 43, 50, 1 },
+				new int[] { 27, 43, 2 },
+				new int[] { 5,  21, 2 },
+				new int[] { 30, 40, 3 },
+				new int[] { 14, 29, 3 },
+				new int[] { 3,  19, 3 },
+				new int[] { 3,  14, 3 },
+				new int[] { 25, 39, 4 },
+				new int[] { 6,  19, 4 },
 			},
+		};
+
+		private readonly (int n, (int u, int v)[] edgeSwitches, int[] maxSizes)[] dynamicConnectivityTestCases = new (int n, (int u, int v)[] edges, int[] maxSizes)[]
+		{
+			(6,
+			new(int u, int v)[] { (0,1), (2,3), (4,5), (0,3), (1,4), (0, 5), (0,1), (1,4), (0,5), (0,3) },
+			new int[] { 2, 2, 2, 4, 6, 6, 6, 5, 3, 2 }),
 		};
 
 		private void ProcessDefinedTestCases()
@@ -87,10 +102,14 @@ namespace ForFreePrimitivesTests
 				Validate(testcase);
 			foreach (var (target, available, missingCount) in maxSegmentTreeTestcases)
 				ValidateMax(target, available, missingCount);
+			foreach (var (nums, queries, result) in minSegmentTreeTestcases)
+				ValidateMin(nums, queries, result);
 			foreach (var (nums, segments) in lengthSegmentTreeTestcases)
 				ValidateLength(nums, segments);
 			foreach (var nums in majoritySegmentTreeTestcases)
 				ValidateMajority(nums);
+			foreach (var (n, edges, maxSizes) in dynamicConnectivityTestCases)
+				ValidateDynamicConnectivity(n, edges, maxSizes);
 		}
 
 		private void ProcessRandomTestCases()
@@ -132,6 +151,59 @@ namespace ForFreePrimitivesTests
 					else if (!(2 * c <= length))
 						Assert.Fail($"[{Tools.Dump(nums)}] [{i}..{j}] ({v}, {c}) 2 * {c} > {length}");
 				}
+		}
+
+		private void ValidateDynamicConnectivity(int n, (int u, int v)[] edgeSwitches, int[] maxSizes)
+		{
+			var m = new List<int>[n][];
+			for (var i = 0; i < m.Length; i += 1)
+			{
+				m[i] = new List<int>[n];
+				for (var j = 0; j < m[i].Length; j += 1)
+					m[i][j] = new List<int>();
+			}
+			for (var i = 0; i < edgeSwitches.Length; i += 1)
+			{
+				var (u, v) = edgeSwitches[i];
+				if (u > v)
+					(u, v) = (v, u);
+				m[u][v].Add(i);
+			}
+			var tree = new DynamicConnectivitySegmentTree(edgeSwitches.Length);
+			for (var i = 0; i < m.Length; i += 1)
+				for (var j = i + 1; j < m[i].Length; j += 1)
+				{
+					var index = 0;
+					var items = m[i][j];
+					while (index < items.Count)
+					{
+						var start = items[index];
+						index += 1;
+						var end = edgeSwitches.Length;
+						if (index < items.Count)
+						{
+							end = items[index];
+							index += 1;
+						}
+						tree.Update(i, j, start, end - 1);
+					}
+				}
+			var ufu = new UnionFindUndo(n);
+			var result = new int[maxSizes.Length];
+			tree.Query((u, v) =>
+			{
+				ufu.Union(u, v, true);
+			},
+			(u, v) =>
+			{
+				ufu.Undo();
+			},
+			(l, r) =>
+			{
+				if (l == r)
+					result[l] = ufu.MaxSize;
+			});
+			Assert.IsTrue(Enumerable.SequenceEqual(maxSizes, result));
 		}
 
 		private void ValidateMinMaxLazy()
@@ -196,7 +268,7 @@ namespace ForFreePrimitivesTests
 						Assert.Fail($"[{Tools.Dump(zeroTest)}] [{i}..{j}] last zero index {lastZero} != {treeLastZero}");
 				}
 			}
-		}	
+		}
 
 		private void ValidateMinMaxInBounds()
 		{
@@ -256,6 +328,18 @@ namespace ForFreePrimitivesTests
 					tree.Update(index, 0);
 			}
 			Assert.IsTrue(missing == missingCount, $"{missing} != {missingCount}");
+		}
+
+		private void ValidateMin(int[] nums, int[] queries, (int first, int last)[] result)
+		{
+			var tree = new MinSegmentTree<int>(nums);
+			for (var i = 0; i < queries.Length; i += 1)
+			{
+				var q = queries[i];
+				var first = tree.GetFirstLesser(q);
+				var last = tree.GetLastLesser(q);
+				Assert.IsTrue((first == result[i].first) && (last == result[i].last));
+			}
 		}
 
 		private void ValidateLength(int[] nums, int[][] segments)

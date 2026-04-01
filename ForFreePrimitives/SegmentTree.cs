@@ -8,6 +8,50 @@ namespace ForFreePrimitives
 		public MinSegmentTree(T[] nums) : base(nums) { }
 
 		protected override int SelectIndex(int a, int b) => nums[a].CompareTo(nums[b]) < 0 ? a : b;
+
+		public int GetFirstLesser(T value)
+		{
+			return GetLesser(1, value, 0, nums.Length - 1, 0, nums.Length - 1, true);
+		}
+
+		public int GetFirstLesser(T value, int leftBound, int rightBound)
+		{
+			if (leftBound > rightBound)
+				return -1;
+			return GetLesser(1, value, 0, nums.Length - 1, leftBound, rightBound, true);
+		}
+
+		public int GetLastLesser(T value)
+		{
+			return GetLesser(1, value, 0, nums.Length - 1, 0, nums.Length - 1, false);
+		}
+
+		public int GetLastLesser(T value, int leftBound, int rightBound)
+		{
+			if (leftBound > rightBound)
+				return -1;
+			return GetLesser(1, value, 0, nums.Length - 1, Math.Max(0, leftBound), Math.Min(nums.Length - 1, rightBound), false);
+		}
+
+		private int GetLesser(int index, T value, int left, int right, int leftBound, int rightBound, bool leftFirst)
+		{
+			var min = GetSelectedIndex(index, left, right);
+			if (nums[min].CompareTo(value) >= 0)
+				return -1;
+			if (left == right)
+				return min;
+			var mid = left + (right - left) / 2;
+			Func<int> leftQuery = () => GetLesser(2 * index, value, left, mid, leftBound, rightBound, leftFirst);
+			Func<int> rightQuery = () => GetLesser(2 * index + 1, value, mid + 1, right, leftBound, rightBound, leftFirst);
+			if (rightBound <= mid)
+				return leftQuery();
+			if (leftBound > mid)
+				return rightQuery();
+			var first = leftFirst ? leftQuery() : rightQuery();
+			if (first >= 0)
+				return first;
+			return leftFirst ? rightQuery() : leftQuery();
+		}
 	}
 
 	public class MaxSegmentTree<T> : SelectSegmentTree<T> where T : IComparable
@@ -18,47 +62,29 @@ namespace ForFreePrimitives
 
 		public int GetFirstGreater(T value)
 		{
-			return GetFirstGreater(1, value, 0, nums.Length - 1, 0, nums.Length - 1);
+			return GetGreater(1, value, 0, nums.Length - 1, 0, nums.Length - 1, true);
 		}
 
 		public int GetFirstGreater(T value, int leftBound, int rightBound)
 		{
 			if (leftBound > rightBound)
 				return -1;
-			return GetFirstGreater(1, value, 0, nums.Length - 1, Math.Max(0, leftBound), Math.Min(nums.Length - 1, rightBound));
-		}
-
-		private int GetFirstGreater(int index, T value, int left, int right, int leftBound, int rightBound)
-		{
-			var max = GetSelectedIndex(index, left, right);
-			if (nums[max].CompareTo(value) <= 0)
-				return -1;
-			if (left == right)
-				return max;
-			var mid = left + (right - left) / 2;
-			if (rightBound <= mid)
-				return GetFirstGreater(2 * index, value, left, mid, leftBound, rightBound);
-			if (leftBound > mid)
-				return GetFirstGreater(2 * index + 1, value, mid + 1, right, leftBound, rightBound);
-			var leftGreater = GetFirstGreater(index * 2, value, left, mid, leftBound, mid);
-			if (leftGreater >= 0)
-				return leftGreater;
-			return GetFirstGreater(index * 2 + 1, value, mid + 1, right, mid + 1, rightBound);
+			return GetGreater(1, value, 0, nums.Length - 1, leftBound, rightBound, true);
 		}
 
 		public int GetLastGreater(T value)
 		{
-			return GetLastGreater(1, value, 0, nums.Length - 1, 0, nums.Length - 1);
+			return GetGreater(1, value, 0, nums.Length - 1, 0, nums.Length - 1, false);
 		}
 
 		public int GetLastGreater(T value, int leftBound, int rightBound)
 		{
 			if (leftBound > rightBound)
 				return -1;
-			return GetLastGreater(1, value, 0, nums.Length - 1, Math.Max(0, leftBound), Math.Min(nums.Length - 1, rightBound));
+			return GetGreater(1, value, 0, nums.Length - 1, leftBound, rightBound, false);
 		}
 
-		private int GetLastGreater(int index, T value, int left, int right, int leftBound, int rightBound)
+		private int GetGreater(int index, T value, int left, int right, int leftBound, int rightBound, bool leftFirst)
 		{
 			var max = GetSelectedIndex(index, left, right);
 			if (nums[max].CompareTo(value) <= 0)
@@ -66,16 +92,17 @@ namespace ForFreePrimitives
 			if (left == right)
 				return max;
 			var mid = left + (right - left) / 2;
+			Func<int> leftQuery = () => GetGreater(2 * index, value, left, mid, leftBound, rightBound, leftFirst);
+			Func<int> rightQuery = () => GetGreater(2 * index + 1, value, mid + 1, right, leftBound, rightBound, leftFirst);
 			if (rightBound <= mid)
-				return GetLastGreater(2 * index, value, left, mid, leftBound, rightBound);
+				return leftQuery();
 			if (leftBound > mid)
-				return GetLastGreater(2 * index + 1, value, mid + 1, right, leftBound, rightBound);
-			var rightGreater = GetLastGreater(index * 2 + 1, value, mid + 1, right, mid + 1, rightBound);
-			if (rightGreater >= 0)
-				return rightGreater;
-			return GetLastGreater(index * 2, value, left, mid, leftBound, mid);
+				return rightQuery();
+			var leftGreater = leftFirst ? leftQuery() : rightQuery();
+			if (leftGreater >= 0)
+				return leftGreater;
+			return leftFirst ? rightQuery() : leftQuery();
 		}
-
 	}
 
 	public abstract class SelectSegmentTree<T> where T : IComparable
@@ -113,36 +140,38 @@ namespace ForFreePrimitives
 
 		protected int GetSelectedIndex(int index, int left, int right)
 		{
-			var max = nodes[index];
-			if (max >= 0)
-				return max;
+			var val = nodes[index];
+			if (val >= 0)
+				return val;
 			if (left == right)
 			{
 				nodes[index] = left;
 				return nodes[index];
 			}
 			var mid = left + (right - left) / 2;
-			var leftMax = GetSelectedIndex(2 * index, left, mid);
-			var rightMax = GetSelectedIndex(2 * index + 1, mid + 1, right);
-			nodes[index] = SelectIndex(leftMax, rightMax);
+			var leftVal = GetSelectedIndex(2 * index, left, mid);
+			var rightVal = GetSelectedIndex(2 * index + 1, mid + 1, right);
+			nodes[index] = SelectIndex(leftVal, rightVal);
 			return nodes[index];
 		}
 
-		public T GetValueInBounds(int left, int right)
+		public T GetValueInBounds(int leftBound, int rightBound)
 		{
-			var index = GetIndexInBounds(left, right);
+			var index = GetIndexInBounds(leftBound, rightBound);
 			return nums[index];
 		}
 
-		public int GetIndexInBounds(int left, int right)
+		public int GetIndexInBounds(int leftBound, int rightBound)
 		{
-			return GetIndexInBounds(1, 0, nums.Length - 1, Math.Max(0, left), Math.Min(nums.Length - 1, right));
+			return GetIndexInBounds(1, 0, nums.Length - 1, leftBound, rightBound);
 		}
 
 		private int GetIndexInBounds(int index, int left, int right, int leftBound, int rightBound)
 		{
-			if ((left == leftBound) && (right == rightBound))
+			if ((leftBound <= left) && (right <= rightBound))
 				return GetSelectedIndex(index, left, right);
+			if (left >= right)
+				return -1;
 			var mid = left + (right - left) / 2;
 			if (rightBound <= mid)
 				return GetIndexInBounds(index * 2, left, mid, leftBound, rightBound);
@@ -392,6 +421,67 @@ namespace ForFreePrimitives
 			var ln = Query(2 * nodeIndex, left, mid, leftBound, rightBound);
 			var rn = Query(2 * nodeIndex + 1, mid + 1, right, leftBound, rightBound); ;
 			return Merge(ln, rn);
+		}
+	}
+
+	public class DynamicConnectivitySegmentTree
+	{
+		private List<(int u, int v)>[] nodes = null;
+
+		public int Size { get => nodes.Length / 4; }
+
+		public DynamicConnectivitySegmentTree(int size)
+		{
+			nodes = new List<(int, int)>[size * 4];
+			for (var i = 0; i < nodes.Length; i += 1)
+				nodes[i] = new List<(int u, int v)>();
+		}
+
+		public void Update(int u, int v, int leftBound, int rightBound)
+		{
+			Update(1, 0, Size - 1, u, v, leftBound, rightBound);
+		}
+
+		private void Update(int n, int left, int right, int u, int v, int leftBound, int rightBound)
+		{
+			if ((leftBound <= left) && (rightBound >= right))
+			{
+				nodes[n].Add((u, v));
+				return;
+			}
+			var mid = left + (right - left) / 2;
+			if (leftBound <= mid)
+				Update(n * 2, left, mid, u, v, leftBound, rightBound);
+			if (rightBound > mid)
+				Update(n * 2 + 1, mid + 1, right, u, v, leftBound, rightBound);
+		}
+
+		public void Query(Action<int, int> join, Action<int, int> disjoin, Action<int, int> query)
+		{
+			Query(1, 0, Size - 1, join, disjoin, query);
+		}
+
+		private void Query(int n, int left, int right, Action<int, int> join, Action<int, int> disjoin, Action<int, int> query)
+		{
+			var node = nodes[n];
+			var count = node.Count;
+			for (var i = 0; i < node.Count; i += 1)
+			{
+				var (u, v) = node[i];
+				join(u, v);
+			}
+			query(left, right);
+			if (left < right)
+			{
+				var mid = left + (right - left) / 2;
+				Query(n * 2, left, mid, join, disjoin, query);
+				Query(n * 2 + 1, mid + 1, right, join, disjoin, query);
+			}
+			for (var i = node.Count - 1; i >= 0; i -= 1)
+			{
+				var (u, v) = node[i];
+				disjoin(u, v);
+			}
 		}
 	}
 

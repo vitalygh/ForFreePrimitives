@@ -93,6 +93,12 @@ namespace ForFreePrimitivesTests
 					if (map[i][j] > 0)
 						uf.Union(i, j);
 			Assert.IsTrue(uf.Count == result);
+			var ufu = new UnionFindUndo(map.Length);
+			for (var i = 0; i < map.Length; i += 1)
+				for (var j = 0; j < map[i].Length; j += 1)
+					if (map[i][j] > 0)
+						ufu.Union(i, j);
+			Assert.IsTrue(ufu.Count == result);
 		}
 	}
 }
