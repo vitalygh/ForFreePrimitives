@@ -12,6 +12,7 @@ namespace ForFreePrimitivesTests
 		public void Tests()
 		{
 			ProcessDefinedSumTestCases();
+			ProcessDefinedRangeSumTestCases();
 			ProcessDefinedMinTestCases();
 			ProcessDefinedMaxTestCases();
 		}
@@ -22,6 +23,19 @@ namespace ForFreePrimitivesTests
 			(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new int[] { 0, 8 }, 45),
 			(new int[] { 1, 2, 5, 4, 3, 6, 7, 8, 9 }, new int[] { 2, 4 }, 12),
 			(new int[] { 1, 2, 5, 5, 5, 6, 7, 8, 9 }, new int[] { 1, 5 }, 23),
+		};
+
+		private readonly (int n, (int l, int r, int v, bool update)[] queries)[] rangeSumTestcases = new[]
+		{
+			(10, new (int, int, int, bool)[]
+			{
+				(0, 9, 1, true),
+				(0, 9, 10, false),
+				(3, 7, 2, true),
+				(0, 5, 12, false),
+				(4, 6, -3, true),
+				(0, 9, 11, false),
+			}),
 		};
 
 		private readonly (int[] nums, int position, int result)[] minTestcases = new[]
@@ -67,6 +81,27 @@ namespace ForFreePrimitivesTests
 				if (a > 0)
 					result -= tree.Query(a);
 				Assert.IsTrue(result == answer, $"Testcase {i}: sum [{a}..{b}] != {answer}");
+			}
+		}
+
+		private void ProcessDefinedRangeSumTestCases()
+		{
+			for (var i = 0; i < rangeSumTestcases.Length; i += 1)
+			{
+				var (n, queries) = rangeSumTestcases[i];
+				var tree1 = new SumBIT(n);
+				var tree2 = new SumBIT(n);
+				for (var j = 0; j < queries.Length; j += 1)
+				{
+					var (l, r, v, u) = queries[j];
+					if (u)
+						SumBIT.RangeUpdate(tree1, tree2, l, r, v);
+					else
+					{
+						var sum = SumBIT.RangeQuery(tree1, tree2, l, r);
+						Assert.IsTrue(sum == v, $"Testcase {i}, query {j}: {sum} != {v}");
+					}
+				}
 			}
 		}
 
