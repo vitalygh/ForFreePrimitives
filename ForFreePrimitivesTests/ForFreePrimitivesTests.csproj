@@ -124,6 +124,7 @@
     <Compile Include="PrimeNumbersTests.cs" />
     <Compile Include="RBTreeTests.cs" />
     <Compile Include="SegmentTreeTests.cs" />
+    <Compile Include="TrieTests.cs" />
     <Compile Include="UnionFindTests.cs" />
     <Compile Include="StringToolsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

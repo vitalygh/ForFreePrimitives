@@ -65,6 +65,7 @@
     <Compile Include="RBTree.cs" />
     <Compile Include="SegmentTree.cs" />
     <Compile Include="SuffixTree.cs" />
+    <Compile Include="Trie.cs" />
     <Compile Include="UnionFind.cs" />
   </ItemGroup>
   <ItemGroup>
