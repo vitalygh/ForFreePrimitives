@@ -5,9 +5,9 @@ using System.Numerics;
 
 namespace ForFreePrimitives
 {
-    public static class BinPow
+    public static class BinExp
     {
-        public static BigInteger Calc(BigInteger val, BigInteger exp)
+        public static BigInteger BinPow(BigInteger val, BigInteger exp)
         {
             var result = new BigInteger(1);
             while (exp > 0)
@@ -20,7 +20,7 @@ namespace ForFreePrimitives
             return result;
         }
 
-        public static BigInteger Calc(BigInteger val, BigInteger exp, BigInteger mod)
+        public static BigInteger BinPow(BigInteger val, BigInteger exp, BigInteger mod)
         {
             var result = new BigInteger(1);
             val %= mod;
@@ -34,7 +34,7 @@ namespace ForFreePrimitives
             return result;
         }
 
-        public static long Calc(long val, long exp)
+        public static long BinPow(long val, long exp)
         {
             var result = 1L;
             while (exp > 0)
@@ -47,7 +47,7 @@ namespace ForFreePrimitives
             return result;
         }
 
-        public static long Calc(long val, long exp, long mod)
+        public static long BinPow(long val, long exp, long mod)
         {
             var result = 1L;
             val %= mod;
@@ -61,7 +61,7 @@ namespace ForFreePrimitives
             return result;
         }
 
-        public static int Calc(int val, int exp)
+        public static int BinPow(int val, int exp)
         {
             var result = 1;
             while (exp > 0)
@@ -74,7 +74,7 @@ namespace ForFreePrimitives
             return result;
         }
 
-        public static int Calc(int val, int exp, int mod)
+        public static int BinPow(int val, int exp, int mod)
         {
             var result = 1L;
             var v = (long)val;
@@ -115,7 +115,7 @@ namespace ForFreePrimitives
             return c;
         }
 
-        public static int[][] Calc(int[][] val, int exp, int modulo)
+        public static int[][] BinPow(int[][] val, int exp, int modulo)
         {
             var n = val.Length;
             var r = new int[n][];

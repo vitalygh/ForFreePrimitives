@@ -89,19 +89,19 @@ namespace ForFreePrimitivesTests
 			var val = new BigInteger(testcase[0]);
 			var exp = testcase[1];
 			var mod = new BigInteger(testcase[2]);
-			Assert.IsTrue(BinPow.Calc(val, exp) == BigInteger.Pow(val, exp), $"BinPow.Calc({val}, {exp})");
-			Assert.IsTrue(BinPow.Calc(val, exp, mod) == BigInteger.ModPow(val, exp, mod), $"BinPow.Calc({val}, {exp}, {mod})");
+			Assert.IsTrue(BinExp.BinPow(val, exp) == BigInteger.Pow(val, exp), $"BinExp.BinPow({val}, {exp})");
+			Assert.IsTrue(BinExp.BinPow(val, exp, mod) == BigInteger.ModPow(val, exp, mod), $"BinExp.BinPow({val}, {exp}, {mod})");
 			if (BigInteger.Pow(val, exp) <= long.MaxValue)
-				Assert.IsTrue(BinPow.Calc((long)val, exp) == BigInteger.Pow(val, exp), $"BinPow.Calc({val}, {exp})");
-			Assert.IsTrue(BinPow.Calc((long)val, exp, (long)mod) == BigInteger.ModPow(val, exp, mod), $"BinPow.Calc({val}, {exp}, {mod})");
+				Assert.IsTrue(BinExp.BinPow((long)val, exp) == BigInteger.Pow(val, exp), $"BinExp.BinPow({val}, {exp})");
+			Assert.IsTrue(BinExp.BinPow((long)val, exp, (long)mod) == BigInteger.ModPow(val, exp, mod), $"BinExp.BinPow({val}, {exp}, {mod})");
 			if (BigInteger.Pow(val, exp) <= int.MaxValue)
-				Assert.IsTrue(BinPow.Calc((int)val, exp) == BigInteger.Pow(val, exp), $"BinPow.Calc({val}, {exp})");
-			Assert.IsTrue(BinPow.Calc((int)val, exp, (int)mod) == BigInteger.ModPow(val, exp, mod), $"BinPow.Calc({val}, {exp}, {mod})");
+				Assert.IsTrue(BinExp.BinPow((int)val, exp) == BigInteger.Pow(val, exp), $"BinExp.BinPow({val}, {exp})");
+			Assert.IsTrue(BinExp.BinPow((int)val, exp, (int)mod) == BigInteger.ModPow(val, exp, mod), $"BinExp.BinPow({val}, {exp}, {mod})");
 		}
 
 		private void Validate(int[][] val, int exp, int mod, int[][] result)
 		{
-			var test = BinPow.Calc(val, exp, mod);
+			var test = BinExp.BinPow(val, exp, mod);
 			Assert.IsTrue(test.Length == result.Length, "Incorrect result matrix size");
 			if (test.Length == result.Length)
 				for (var i = 0; i < test.Length; i += 1)

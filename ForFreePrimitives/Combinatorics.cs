@@ -17,7 +17,7 @@
                 fact[i] = (int)((prev * i) % modulo);
             }
             ifact = new int[maxValue + 1];
-            ifact[ifact.Length - 1] = BinPow.Calc(fact[fact.Length - 1], modulo - 2, modulo);
+            ifact[ifact.Length - 1] = BinExp.BinPow(fact[fact.Length - 1], modulo - 2, modulo);
             for (var i = fact.Length - 2; i >= 0; i -= 1)
             {
                 long prev = ifact[i + 1];
