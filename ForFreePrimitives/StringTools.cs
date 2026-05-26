@@ -134,6 +134,30 @@ namespace ForFreePrimitives
                 arr[labels[i]] = i;
         }
 
+        public static void BuildLCP<T>(Func<int, T> data, int[] suf, int[] lcp) where T : IComparable
+        {
+            var n = suf.Length;
+            var pos = new int[n];
+            for (var i = 0; i < n; i += 1)
+                pos[suf[i]] = i;
+            var k = 0;
+            for (var i = 0; i < n; i += 1)
+            {
+                if (k > 0)
+                    k -= 1;
+                if (pos[i] == (n - 1))
+                {
+                    lcp[n - 1] = -1;
+                    k = 0;
+                    continue;
+                }
+                var j = suf[pos[i] + 1];
+                while ((Math.Max(i + k, j + k) < n) && (data(i + k).CompareTo(data(j + k)) == 0))
+                    k += 1;
+                lcp[pos[i]] = k;
+            }
+        }
+
         public static void ManacherOdd<T>(Func<int, T> s, int n, int[] d) where T : IComparable
         {
             var l = 0;

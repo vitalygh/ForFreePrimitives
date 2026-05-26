@@ -127,6 +127,12 @@ namespace ForFreePrimitivesTests
 			("abcabxabcd", new int[] { 0,6,3,1,7,4,2,8,9,5 }),
 		};
 
+		private static readonly (string data, int[] suf, int[] lcp)[] lcpTestcases = new (string data, int[] suf, int[] lcp)[]
+		{
+			("ABAACBAB", new int[] { 2,6,0,3,7,1,5,4 }, new int[] { 1,2,1,0,1,2,0,-1 }),
+			("abcabxabcd", new int[] { 0,6,3,1,7,4,2,8,9,5 }, new int[] { 3,2,0,2,1,0,1,0,0,-1 }),
+		};
+
 		private void ProcessDefinedTestCases()
 		{
 			foreach ((var text, var pattern, _) in kmpTestcases)
@@ -137,6 +143,8 @@ namespace ForFreePrimitivesTests
 				ValidateManacher(text);
 			foreach (var (text, arr) in suffixArrayTestcases)
 				ValidateSuffixArray(text, arr);
+			foreach (var (text, suf, lcp) in lcpTestcases)
+				ValidateLCP(text, suf, lcp);
 		}
 
 		private List<int> GetValidResult(string text, string pattern)
@@ -240,6 +248,14 @@ namespace ForFreePrimitivesTests
 			StringTools.BuildSuffixArray(i => text[i], suf);
 			if (!Enumerable.SequenceEqual(suf, arr))
 				Assert.Fail($"Testcase failed: \"{text}\", new int[] {{ {Tools.Dump(arr)} }}");
+		}
+
+		private void ValidateLCP(string text, int[] suf, int[] lcp)
+		{
+			var result = new int[text.Length];
+			StringTools.BuildLCP(i => text[i], suf, result);
+			if (!Enumerable.SequenceEqual(lcp, result))
+				Assert.Fail($"Testcase failed: \"{text}\", new int[] {{ {Tools.Dump(suf)} }}, new int[] {{ {Tools.Dump(lcp)} }}");
 		}
 	}
 }
