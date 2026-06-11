@@ -118,6 +118,7 @@
     <Compile Include="BinaryLiftingTests.cs" />
     <Compile Include="BinPowTests.cs" />
     <Compile Include="BITTest.cs" />
+    <Compile Include="SparseTableTests.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="CombinatoricsTests.cs" />
     <Compile Include="NumbersTests.cs" />

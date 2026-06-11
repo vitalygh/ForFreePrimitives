@@ -60,6 +60,7 @@
     <Compile Include="Combinatorics.cs" />
     <Compile Include="BinaryLifting.cs" />
     <Compile Include="Numbers.cs" />
+    <Compile Include="SparseTable.cs" />
     <Compile Include="StringTools.cs" />
     <Compile Include="PrimeNumbers.cs" />
     <Compile Include="RBTree.cs" />

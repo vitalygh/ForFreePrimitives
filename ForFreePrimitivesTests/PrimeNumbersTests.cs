@@ -99,6 +99,32 @@ namespace ForFreePrimitivesTests
 			7817,7823,7829,7841,7853,7867,7873,7877,7879,7883,7901,7907,7919
 		};
 
+		private static readonly int[] mu = new[]
+		{
+			1, -1, -1, 0, -1, 1, -1, 0, 0, 1,
+			-1, 0, -1, 1, 1, 0, -1, 0, -1, 0,
+			1, 1, -1, 0, 0, 1, 0, 0, -1, -1,
+			-1, 0, 1, 1, 1, 0, -1, 1, 1, 0,
+			-1, -1, -1, 0, 0, 1, -1, 0, 0, 0,
+			1, 0, -1, 0, 1, 0, 1, 1, -1, 0, -1,
+			1, 0, 0, 1, -1, -1, 0, 1, -1, -1,
+			0, -1, 1, 0, 0, 1, -1
+		};
+
+		private static readonly int[] spf = new[]
+		{
+			1, 2, 3, 2, 5, 2, 7, 2, 3, 2,
+			11, 2, 13, 2, 3, 2, 17, 2, 19, 2,
+			3, 2, 23, 2, 5, 2, 3, 2, 29, 2,
+			31, 2, 3, 2, 5, 2, 37, 2, 3, 2,
+			41, 2, 43, 2, 3, 2, 47, 2, 7, 2,
+			3, 2, 53, 2, 5, 2, 3, 2, 59, 2,
+			61, 2, 3, 2, 5, 2, 67, 2, 3, 2,
+			71, 2, 73, 2, 3, 2, 7, 2, 79, 2,
+			3, 2, 83, 2, 5, 2, 3, 2, 89, 2,
+			7, 2, 3, 2, 5, 2, 97
+		};
+
 		private void ProcessTestCases()
 		{
 			ProcessDefinedTestCases();
@@ -111,17 +137,49 @@ namespace ForFreePrimitivesTests
 			foreach (var prime in primes)
 				isPrime[prime] = true;
 			for (var i = 0; i <= last; i += 1)
-				Validate(i, isPrime[i]);
-			Assert.IsTrue(!PrimeNumbers.IsInitialized);
-			PrimeNumbers.Init(last);
-			Assert.IsTrue(PrimeNumbers.IsInitialized);
+				ValidatePrime(i, isPrime[i]);
+			Assert.IsTrue(!PrimeNumbers.IsPrimesInitialized);
+			PrimeNumbers.InitPrimes(last);
+			Assert.IsTrue(PrimeNumbers.IsPrimesInitialized);
 			for (var i = 0; i <= last; i += 1)
-				Validate(i, isPrime[i]);
+				ValidatePrime(i, isPrime[i]);
+
+			for (var i = 0; i < mu.Length; i += 1)
+				ValidateMobius(i + 1, mu[i]);
+			Assert.IsTrue(!PrimeNumbers.IsMobiusInitialized);
+			PrimeNumbers.InitMobius(mu.Length);
+			Assert.IsTrue(PrimeNumbers.IsMobiusInitialized);
+			for (var i = 0; i < mu.Length; i += 1)
+				ValidateMobius(i + 1, mu[i]);
+
+			for (var i = 0; i < mu.Length; i += 1)
+				ValidateSPF(i + 1, spf[i]);
+			Assert.IsTrue(!PrimeNumbers.IsSPFInitialized);
+			PrimeNumbers.InitSPF(spf.Length);
+			Assert.IsTrue(PrimeNumbers.IsSPFInitialized);
+			for (var i = 0; i < spf.Length; i += 1)
+				ValidateSPF(i + 1, spf[i]);
 		}
 
-		private void Validate(int num, bool isPrime)
+		private void ValidatePrime(int num, bool isPrime)
 		{
-			Assert.IsTrue(PrimeNumbers.IsPrime(num) == isPrime, $"PrimeNumbers.IsPrime({num}) != {isPrime}");
+			var val = PrimeNumbers.IsPrime(num);
+			if (val != isPrime)
+				Assert.Fail($"PrimeNumbers.IsPrime({num}) {val} != {isPrime}");
+		}
+
+		private void ValidateMobius(int num, int mu)
+		{
+			var val = PrimeNumbers.GetMobius(num);
+			if (val != mu)
+				Assert.Fail($"PrimeNumbers.GetMobius({num}) {val} != {mu}");
+		}
+
+		private void ValidateSPF(int num, int spf)
+		{
+			var val = PrimeNumbers.GetSPF(num);
+			if (val != spf)
+				Assert.Fail($"PrimeNumbers.GetSPF({num}) {val} != {spf}");
 		}
 	}
 }
