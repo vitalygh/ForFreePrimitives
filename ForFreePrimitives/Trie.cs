@@ -1,4 +1,7 @@
-﻿namespace ForFreePrimitives
+﻿using System;
+using System.Collections.Generic;
+
+namespace ForFreePrimitives
 {
     public class BitTrie
     {
@@ -111,6 +114,102 @@
                 node = node.children[xbit];
             }
             return count;
+        }
+    }
+
+    public class ACTrie<T>
+    {
+        private readonly Node root = null;
+
+        private class Node
+        {
+            public readonly Node[] children = null;
+            public Node failure = null;
+            public Node dictionary = null;
+            public List<T> data = new List<T>();
+
+            public Node(int dictionarySize)
+            {
+                children = new Node[dictionarySize];
+            }
+        }
+
+        public ACTrie(int dictionarySize)
+        {
+            root = new Node(dictionarySize);
+        }
+
+        public void Add(Func<int, int> word, int length, T data)
+        {
+            if (length <= 0)
+                return;
+            if (root.failure != null)
+                throw new InvalidOperationException("Can't add words after building links");
+            var node = root;
+            for (var i = 0; i < length; i += 1)
+            {
+                var index = word(i);
+                if (node.children[index] == null)
+                    node.children[index] = new Node(root.children.Length);
+                node = node.children[index];
+            }
+            node.data.Add(data);
+        }
+
+        public void Build()
+        {
+            var q = new Queue<Node>();
+            root.failure = root;
+            root.dictionary = root;
+            q.Enqueue(root);
+            while (q.Count > 0)
+            {
+                var node = q.Dequeue();
+                for (var i = 0; i < node.children.Length; i += 1)
+                {
+                    var next = node.children[i];
+                    if (next == null)
+                        continue;
+                    var f = node.failure;
+                    while ((f != root) && (f.children[i] == null))
+                        f = f.failure;
+                    if ((node != root) && (f.children[i] != null))
+                        next.failure = f.children[i];
+                    else
+                        next.failure = f;
+                    if (next.failure.data.Count > 0)
+                        next.dictionary = next.failure;
+                    else
+                        next.dictionary = next.failure.dictionary;
+                    q.Enqueue(next);
+                }
+            }
+        }
+
+        public void Find(Func<int, int> word, int length, Action<int, T> found)
+        {
+            if (root.failure == null)
+                Build();
+            var node = root;
+            for (var i = 0; i < length; i += 1)
+            {
+                var index = word(i);
+                if ((index < 0) || (index >= root.children.Length))
+				{
+                    node = root;
+                    continue;
+				}
+                while ((node != root) && (node.children[index] == null))
+                    node = node.failure;
+                node = node.children[index] ?? root;
+                var dataNode = node.data.Count > 0 ? node : node.dictionary;
+                while (dataNode != root)
+                {
+                    foreach (var data in dataNode.data)
+                        found.Invoke(i, data);
+                    dataNode = dataNode.dictionary;
+                }
+            }
         }
     }
 }

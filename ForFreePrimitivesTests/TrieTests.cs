@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ForFreePrimitives;
 
 namespace ForFreePrimitivesTests
@@ -32,6 +33,19 @@ namespace ForFreePrimitivesTests
 			(new int[] {9,8,4,2,1}, 5, 14, 8),
 		};
 
+		private readonly (string[] words, string text, (int pos, int word)[] matches)[] ahoCorasickTestcases = new (string[], string, (int, int)[])[]
+		{
+			(new string[] {"he", "she", "his", "hers"}, "a hishers", new (int, int)[]{ (4, 2), (6, 0), (6, 1), (8, 3) }),
+			(new string[] {"aba", "ba" }, "ababa", new (int, int)[]{ (2, 0), (2, 1), (4, 0), (4, 1) }),
+			(new string[] {"sh", "she" }, "she", new (int, int)[]{ (1, 0), (2, 1) }),
+			(new string[] { "cat", "cat", "dog" }, "catdog", new (int, int)[]{ (2, 0), (2, 1), (5, 2) }),
+			(new string[] { "a", "aa", "aaa", "aaaa" }, "aaaa", new (int, int)[]{ (0, 0), (1, 0), (2, 0), (3, 0), (1, 1), (2, 1), (3, 1), (2, 2), (3, 2), (3, 3) }),
+			(new string[] { "xyz", "abc" }, "defghijkl", new (int, int)[]{ }),
+			(new string[] { "xyz", "abc" }, "", new (int, int)[]{ }),
+			(new string[] { }, "defghijkl", new (int, int)[]{ }),
+			(new string[] { "", "abc" }, "abc", new (int, int)[]{ (2, 1) }),
+		};
+
 		private void ProcessDefinedTestCases()
 		{
 			foreach (var nums in trieTestCases)
@@ -40,6 +54,8 @@ namespace ForFreePrimitivesTests
 				ValidateMaxXor(nums, maxXor);
 			foreach (var (nums, low, high, xorPairsInRangeCount) in xorInRangeCountTestCases)
 				ValidateXorInRangeCount(nums, low, high, xorPairsInRangeCount);
+			foreach (var (words, text, matches) in ahoCorasickTestcases)
+				ValidateACTrie(words, text, matches);
 		}
 
 		private void ValidateTrie(int[] nums)
@@ -102,6 +118,34 @@ namespace ForFreePrimitivesTests
 				trie.Add(num);
 			}
 			Assert.IsTrue(count == xorPairsInRangeCount);
+		}
+
+		private void ValidateACTrie(string[] words, string text, (int pos, int word)[] matches)
+		{
+			var sortedMatches = new (int, int)[matches.Length];
+			Array.Copy(matches, sortedMatches, matches.Length);
+			Array.Sort(sortedMatches);
+			var result = new List<(int, int)>();
+			var min = int.MaxValue;
+			var max = int.MinValue;
+			foreach (var word in words)
+				foreach (var c in word)
+				{
+					min = Math.Min(min, c);
+					max = Math.Max(max, c);
+				}
+			var dictionarySize = min <= max ? max - min + 1 : 0;
+			var trie = new ACTrie<int>(dictionarySize);
+			for (var i = 0; i < words.Length; i += 1)
+			{
+				var word = words[i];
+				trie.Add(x => word[x] - min, word.Length, i);
+			}
+			trie.Find(x => text[x] - min, text.Length, (pos, data) => result.Add((pos, data)));
+			var sortedResult = result.ToArray();
+			Array.Sort(sortedResult);
+			if (!Enumerable.SequenceEqual(sortedMatches, sortedResult))
+				Assert.Fail($"[{Tools.Dump(words)}] {text}");
 		}
 	}
 }
