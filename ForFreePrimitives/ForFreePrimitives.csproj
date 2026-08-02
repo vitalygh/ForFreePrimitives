@@ -57,6 +57,7 @@
     <Compile Include="AVLTree.cs" />
     <Compile Include="BinPow.cs" />
     <Compile Include="BIT.cs" />
+    <Compile Include="CHT.cs" />
     <Compile Include="Combinatorics.cs" />
     <Compile Include="BinaryLifting.cs" />
     <Compile Include="Numbers.cs" />
